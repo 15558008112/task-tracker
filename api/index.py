@@ -56,7 +56,7 @@ def get_session_user():
 
 @app.route('/')
 def index():
-    return render_template('index.html')
+    return render_template('index.html', logged_in=False)
 
 @app.route('/api/status')
 def get_status():
@@ -73,11 +73,11 @@ def login():
 
 @app.route('/callback')
 def callback():
-    # Just pass user info via URL for now
-    username = request.args.get('username', 'twitter_user')
-    name = request.args.get('name', 'Twitter User')
-    avatar = request.args.get('avatar', 'https://api.dicebear.com/7.x/avataaars/svg?seed=twitter')
-    return redirect(f'/?logged_in=true&username={username}&name={name}&avatar={avatar}')
+    # Set cookie and redirect
+    from flask import make_response
+    response = make_response(redirect('/'))
+    response.set_cookie('twitter_auth', 'true', max_age=60*60*24*30)
+    return response
 
 @app.route('/api/logout', methods=['POST'])
 def logout():

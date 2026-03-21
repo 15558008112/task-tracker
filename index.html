@@ -71,7 +71,7 @@
         }
     </style>
 </head>
-<body class="bg-grid text-slate-300">
+<body class="bg-grid text-slate-300" data-logged-in="{{ logged_in }}">
     <div class="max-w-2xl mx-auto px-5 py-8">
         <!-- Logo & Header -->
         <header class="flex items-center justify-between mb-8">
@@ -181,21 +181,17 @@
         updateCountdown();
         
         async function init() {
-            // Check URL for login success
-            const params = new URLSearchParams(window.location.search);
-            if (params.get('logged_in') === 'true') {
-                const username = params.get('username');
-                const name = params.get('name');
-                const avatar = params.get('avatar');
-                if (username) {
-                    currentUser = {
-                        username: username,
-                        name: name || username,
-                        avatar: avatar || 'https://api.dicebear.com/7.x/avataaars/svg?seed=' + username,
-                        links: 0,
-                        interactions: 0
-                    };
-                }
+            // Check cookie for login
+            const cookies = document.cookie;
+            if (cookies.includes('twitter_auth=true') || cookies.includes('logged_in=true')) {
+                // After Twitter auth, use demo user
+                currentUser = {
+                    username: 'twitter_user',
+                    name: 'Twitter User',
+                    avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=twitter',
+                    links: 0,
+                    interactions: 0
+                };
             }
             showLoggedIn();
         }
