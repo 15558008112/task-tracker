@@ -596,7 +596,9 @@
             if (task) {
                 task.liked = task.retweeted = task.commented = true;
                 renderTasks();
-                userProgress.interactions_done++;
+                if (userProgress.interactions_done < userProgress.required) {
+                    userProgress.interactions_done++;
+                }
                 currentUser.interactions = (currentUser.interactions || 0) + 1;
                 document.getElementById('interactionsDone').textContent = currentUser.interactions;
                 document.getElementById('pendingNeeded').textContent = Math.max(0, userProgress.required - userProgress.interactions_done);
