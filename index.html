@@ -218,6 +218,9 @@
                 
                 // 更新进度
                 userProgress.interactions_done++;
+                currentUser.interactions = (currentUser.interactions || 0) + 1;
+                document.getElementById('interactionsDone').textContent = currentUser.interactions;
+                document.getElementById('pendingNeeded').textContent = Math.max(0, userProgress.required - userProgress.interactions_done);
                 const percent = Math.min(100, (userProgress.interactions_done / userProgress.required) * 100);
                 document.getElementById('progressBar').style.width = percent + '%';
                 document.getElementById('progressText').textContent = userProgress.interactions_done + '/' + userProgress.required;
@@ -255,6 +258,10 @@
             allTasks.unshift(newTask);
             renderTasks();
             renderPagination();
+            
+            // 更新统计数据
+            currentUser.links = (currentUser.links || 0) + 1;
+            document.getElementById('linksSubmitted').textContent = currentUser.links;
             
             // 清空输入框
             document.getElementById('linkInput').value = '';
