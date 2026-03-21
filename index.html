@@ -203,13 +203,12 @@
         
         async function login() {
             try {
-                const res = await fetch('/api/login');
+                const res = await fetch('/api/login', { method: 'POST' });
                 const data = await res.json();
                 if (data.demo) {
                     // Demo mode - auto login
                     currentUser = data.user;
                     showLoggedIn();
-                    alert('已登录 (Demo模式)');
                 } else if (data.auth_url) {
                     window.location.href = data.auth_url;
                 }
