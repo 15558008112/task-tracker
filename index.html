@@ -215,6 +215,26 @@
                 task.retweeted = true;
                 task.commented = true;
                 renderTasks();
+                
+                // 更新进度
+                userProgress.interactions_done++;
+                const percent = Math.min(100, (userProgress.interactions_done / userProgress.required) * 100);
+                document.getElementById('progressBar').style.width = percent + '%';
+                document.getElementById('progressText').textContent = userProgress.interactions_done + '/' + userProgress.required;
+                
+                // 检查是否解锁
+                if (userProgress.interactions_done >= userProgress.required) {
+                    userProgress.is_unlocked = true;
+                    document.getElementById('linkInput').disabled = false;
+                    document.getElementById('linkInput').classList.remove('opacity-50', 'cursor-not-allowed');
+                    document.getElementById('linkInput').placeholder = '粘贴你的Twitter链接...';
+                    document.getElementById('submitBtn').disabled = false;
+                    document.getElementById('submitBtn').classList.remove('bg-slate-700', 'text-slate-400', 'cursor-not-allowed');
+                    document.getElementById('submitBtn').classList.add('bg-sky-500', 'text-white', 'hover:bg-sky-400');
+                    document.getElementById('unlockMessage').classList.remove('hidden');
+                    document.getElementById('progressHint').textContent = '已解锁！可以提交链接了';
+                    document.getElementById('progressHint').classList.add('text-sky-400');
+                }
             }
         }
         
