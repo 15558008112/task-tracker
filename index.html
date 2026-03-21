@@ -13,12 +13,9 @@
         
         const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
         
-        // 🚀 触发登录 - 简化为用户名输入
-        async function login() {
-            const username = prompt('请输入你的 Twitter 用户名（不带@）');
-            if (username && username.trim()) {
-                loginWithUsername(username.trim());
-            }
+        // 触发登录 - 调用后端 OAuth
+        function login() {
+            window.location.href = '/auth/twitter';
         }
         
         // 用户名登录 - 尝试获取真实头像
