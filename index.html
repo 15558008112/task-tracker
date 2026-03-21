@@ -6,44 +6,28 @@
     <title>24hclub 打卡台</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        :root {
-            --bg-dark: #0B0F19;
-            --bg-card: #131B2A;
-            --cyan: #22d3ee;
-            --cyan-glow: rgba(34, 211, 238, 0.2);
-        }
-        
-        body {
-            background-color: var(--bg-dark);
-            color: white;
-        }
-        
-        .glass {
-            background: rgba(255, 255, 255, 0.05);
-            backdrop-filter: blur(10px);
-        }
-        
-        .glow-cyan {
-            box-shadow: 0 0 15px var(--cyan-glow);
-        }
-        
-        .glow-red {
-            box-shadow: 0 0 15px rgba(239, 68, 68, 0.3);
-        }
-        
-        .text-gradient {
-            background: linear-gradient(to right, #22d3ee, #3b82f6);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-        
-        .font-mono {
-            font-family: 'Courier New', monospace;
-        }
+        :root { --bg-dark: #0B0F19; --bg-card: #131B2A; --cyan: #22d3ee; }
+        body { background-color: var(--bg-dark); color: white; }
+        .glass { background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(10px); }
+        .text-gradient { background: linear-gradient(to right, #22d3ee, #3b82f6); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .font-mono { font-family: 'Courier New', monospace; }
     </style>
 </head>
 <body class="bg-[#0B0F19] text-white min-h-screen">
     <div class="max-w-3xl mx-auto px-5 py-6">
+        <!-- 核心模块2: 紧迫感倒计时 -->
+        <div id="countdown" class="glass rounded-xl p-4 mb-4 border border-red-500/30 text-center">
+            <div class="text-red-500 text-sm font-semibold tracking-wider">
+                ⏰ 距离今日任务重置还有：
+            </div>
+            <div id="timer" class="text-3xl font-mono font-bold text-red-500 mt-1">
+                00:00:00
+            </div>
+            <div class="text-gray-500 text-xs mt-1">
+                UTC 00:00 重置 (北京时间 08:00)
+            </div>
+        </div>
+        
         <!-- Header -->
         <header class="flex items-center justify-between py-5 border-b border-gray-800">
             <h1 class="text-2xl font-bold bg-gradient-to-r from-cyan-400 to-green-400 bg-clip-text text-transparent">
@@ -59,19 +43,14 @@
         <div id="mainContent" class="hidden">
             <!-- Stats Cards -->
             <div class="grid grid-cols-3 gap-4 my-5">
-                <!-- 今日提交 -->
                 <div class="glass rounded-2xl p-6 border border-gray-800">
                     <div class="text-4xl font-bold text-cyan-400" id="linksSubmitted">0</div>
                     <div class="text-gray-400 text-sm mt-2">📤 今日提交</div>
                 </div>
-                
-                <!-- 已完成互动 -->
                 <div class="glass rounded-2xl p-6 border border-gray-800">
                     <div class="text-4xl font-bold text-gradient" id="interactionsDone">0</div>
                     <div class="text-gray-400 text-sm mt-2">💬 已完成互动</div>
                 </div>
-                
-                <!-- 还需互动 -->
                 <div class="glass rounded-2xl p-6 border border-red-500/50 glow-red" id="pendingCard">
                     <div class="text-4xl font-bold text-red-500" id="pendingNeeded">5</div>
                     <div class="text-gray-400 text-sm mt-2">⏳ 还需互动</div>
@@ -93,6 +72,9 @@
                 <p id="warningMsg" class="hidden mt-3 text-red-500 text-sm">
                     ⚠️ 需要先完成 <span id="pendingNum">5</span> 次互动才能提交链接
                 </p>
+                <p id="alreadySubmitted" class="hidden mt-3 text-yellow-500 text-sm">
+                    ⚠️ 今日已提交过链接，每人每天仅限1条
+                </p>
             </div>
             
             <!-- Task List -->
@@ -107,7 +89,7 @@
         
         <!-- Leaderboard -->
         <div class="mt-8">
-            <h3 class="text-lg font-semibold mb-4">🏆 贡献排行榜</h3>
+            <h3 class="text-lg font-semibold mb-4">🏆 今日贡献榜</h3>
             <div id="leaderboardList" class="space-y-2"></div>
         </div>
         
@@ -119,6 +101,28 @@
     <script>
         let currentUser = null;
         let tasks = [];
+        let userSubmittedToday = false;
+        
+        // 核心模块2: 倒计时
+        async function updateCountdown() {
+            try {
+                const res = await fetch('/api/countdown');
+                const data = await res.json();
+                const seconds = data.seconds;
+                
+                const hours = Math.floor(seconds / 3600);
+                const mins = Math.floor((seconds % 3600) / 60);
+                const secs = seconds % 60;
+                
+                document.getElementById('timer').textContent = 
+                    `${String(hours).padStart(2, '0')}:${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+            } catch (e) {
+                // Fallback
+            }
+        }
+        
+        setInterval(updateCountdown, 1000);
+        updateCountdown();
         
         async function init() {
             try {
@@ -145,17 +149,17 @@
             document.getElementById('pendingNeeded').textContent = pending;
             document.getElementById('pendingNum').textContent = pending;
             
-            const pendingCard = document.getElementById('pendingCard');
             if (pending > 0) {
-                pendingCard.classList.add('glow-red', 'border-red-500/50');
-                document.getElementById('pendingNeeded').classList.add('text-red-500');
-            } else {
-                pendingCard.classList.remove('glow-red', 'border-red-500/50');
+                document.getElementById('pendingCard').classList.add('glow-red', 'border-red-500/50');
             }
             
-            if (user.interactions >= 5) {
+            if (user.interactions >= 5 && !userSubmittedToday) {
                 document.getElementById('submitForm').classList.remove('hidden');
                 document.getElementById('warningMsg').classList.add('hidden');
+                document.getElementById('alreadySubmitted').classList.add('hidden');
+            } else if (userSubmittedToday) {
+                document.getElementById('submitForm').classList.add('hidden');
+                document.getElementById('alreadySubmitted').classList.remove('hidden');
             } else {
                 document.getElementById('submitForm').classList.add('hidden');
                 document.getElementById('warningMsg').classList.remove('hidden');
@@ -207,7 +211,7 @@
                     <a href="${task.link}" target="_blank" 
                         class="${isDone 
                             ? 'bg-gray-800/50 text-gray-500 border border-gray-700 px-6 py-2 rounded-lg font-mono text-sm cursor-not-allowed' 
-                            : 'bg-cyan-500/10 text-cyan-400 border border-cyan-500/50 hover:bg-cyan-500/20 px-6 py-2 rounded-lg font-mono text-sm uppercase tracking-wider transition-all shadow-[0_0_10px_rgba(34,211,238,0.2)]'}"
+                            : 'bg-cyan-500/10 text-cyan-400 border border-cyan-500/50 hover:bg-cyan-500/20 px-6 py-2 rounded-lg font-mono text-sm uppercase tracking-wider transition-all'}"
                         onclick="${isDone ? '' : `markAsDone(event, ${task.id})`}">
                         ${isDone ? 'DONE' : 'ACTION'}
                     </a>
@@ -234,6 +238,43 @@
             `).join('');
         }
         
+        async function submitLink() {
+            const link = document.getElementById('linkInput').value;
+            if (!link) {
+                alert('请输入链接');
+                return;
+            }
+            
+            // 核心模块3: 防刷屏限制
+            try {
+                const res = await fetch('/api/submit', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({
+                        link: link,
+                        username: currentUser?.username || 'demo_user'
+                    })
+                });
+                const data = await res.json();
+                
+                if (data.success) {
+                    alert('提交成功！');
+                    userSubmittedToday = true;
+                    loadTasks();
+                    loadLeaderboard();
+                } else {
+                    alert(data.error || '提交失败');
+                    if (data.error === '今日已提交') {
+                        userSubmittedToday = true;
+                        document.getElementById('submitForm').classList.add('hidden');
+                        document.getElementById('alreadySubmitted').classList.remove('hidden');
+                    }
+                }
+            } catch (e) {
+                alert('Demo模式 - 提交功能暂时禁用');
+            }
+        }
+        
         function markAsDone(event, taskId) {
             setTimeout(() => {
                 const task = tasks.find(t => t.id === taskId);
@@ -244,15 +285,6 @@
                     renderTasks(tasks);
                 }
             }, 2000);
-        }
-        
-        function submitLink() {
-            const link = document.getElementById('linkInput').value;
-            if (!link) {
-                alert('请输入链接');
-                return;
-            }
-            alert('Demo模式 - 提交功能暂时禁用');
         }
         
         init();
