@@ -200,6 +200,13 @@
                 </div>
                 <h1 class="text-xl font-semibold text-white">24H 交互助手</h1>
             </div>
+            
+            <!-- 导航菜单 -->
+            <div class="flex items-center gap-2">
+                <button onclick="document.getElementById('leaderboardSection').scrollIntoView({behavior: 'smooth'})" class="px-3 py-1.5 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg text-sm text-white transition-all">贡献榜</button>
+                <button onclick="alert('个人中心功能开发中')" class="px-3 py-1.5 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg text-sm text-white transition-all">个人中心</button>
+            </div>
+            
             <div id="userInfo" class="flex items-center gap-2">
                 <input type="text" id="twitterInput" placeholder="输入Twitter用户名" class="px-3 py-1.5 bg-white/5 border border-white/10 rounded-lg text-sm text-white placeholder-slate-500">
                 <button onclick="loginWithUsername()" class="px-3 py-1.5 bg-[#1DA1F2] hover:bg-[#1a91da] rounded-lg text-sm font-medium text-white transition-all">绑定</button>
@@ -269,7 +276,7 @@
         </div>
         
         <!-- Leaderboard -->
-        <div>
+        <div id="leaderboardSection">
             <h3 class="text-sm font-medium text-slate-400 mb-3">贡献榜</h3>
             <div id="leaderboardList" class="space-y-2"></div>
         </div>
