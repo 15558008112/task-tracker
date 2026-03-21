@@ -484,6 +484,7 @@
                     const userData = JSON.parse(savedUser);
                     currentUser.links = userData.links || 0;
                     currentUser.interactions = userData.interactions || 0;
+                    currentUser.score = userData.score || 0;
                 } catch(e) {}
             }
             
