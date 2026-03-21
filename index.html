@@ -84,7 +84,7 @@
                 <h1 class="text-xl font-semibold text-white">24h 交互矩阵</h1>
             </div>
             <div id="userInfo">
-                <a href="/auth/twitter" class="px-4 py-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg text-sm font-medium text-white transition-all">Twitter 登录</a>
+                <button onclick="login()" class="px-4 py-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg text-sm font-medium text-white transition-all">Twitter 登录</button>
             </div>
         </header>
         
@@ -181,19 +181,55 @@
         updateCountdown();
         
         async function init() {
+            // Check login status
             try {
-                const res = await fetch('/api/user');
-                currentUser = await res.json();
-            } catch (e) {
-                currentUser = {id: 1, username: 'demo', avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=demo', links: 3, interactions: 4};
+                const statusRes = await fetch('/api/status');
+                const status = await statusRes.json();
+                if (status.logged_in) {
+                    currentUser = status.user;
+                }
+            } catch (e) {}
+            
+            if (!currentUser) {
+                try {
+                    const res = await fetch('/api/user');
+                    currentUser = await res.json();
+                } catch (e) {
+                    currentUser = {id: 1, username: 'demo', avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=demo', links: 3, interactions: 4};
+                }
             }
             showLoggedIn();
+        }
+        
+        async function login() {
+            try {
+                const res = await fetch('/api/login');
+                const data = await res.json();
+                if (data.demo) {
+                    // Demo mode - auto login
+                    currentUser = data.user;
+                    showLoggedIn();
+                    alert('已登录 (Demo模式)');
+                } else if (data.auth_url) {
+                    window.location.href = data.auth_url;
+                }
+            } catch (e) {
+                alert('登录失败');
+            }
+        }
+        
+        async function logout() {
+            try {
+                await fetch('/api/logout');
+                currentUser = null;
+                location.reload();
+            } catch (e) {}
         }
         
         let userProgress = { interactions_done: 0, required: 3, is_unlocked: false };
         
         function showLoggedIn() {
-            document.getElementById('userInfo').innerHTML = '<img src="' + currentUser.avatar + '" class="w-8 h-8 rounded-full">';
+            document.getElementById('userInfo').innerHTML = '<div class="flex items-center gap-2"><img src="' + currentUser.avatar + '" class="w-8 h-8 rounded-full"><span class="text-white text-sm">@' + currentUser.username + '</span><button onclick="logout()" class="text-xs text-slate-500 hover:text-white">退出</button></div>';
             document.getElementById('mainContent').classList.remove('hidden');
             document.getElementById('linksSubmitted').textContent = currentUser.links;
             document.getElementById('interactionsDone').textContent = currentUser.interactions;
