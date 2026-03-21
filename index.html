@@ -341,6 +341,14 @@
             console.log('Loaded done tasks:', doneTasks);
             userProgress.interactions_done = doneTasks.length;
             
+            // 加载用户提交数
+            const saved = localStorage.getItem('twitter_user');
+            if (saved) {
+                const userData = JSON.parse(saved);
+                currentUser.links = userData.links || 0;
+                document.getElementById('linksSubmitted').textContent = currentUser.links;
+            }
+            
             showLoggedIn();
         }
         
