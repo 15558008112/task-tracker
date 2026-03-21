@@ -724,9 +724,9 @@
                 renderTasks();
                 if (userProgress.interactions_done < userProgress.required) {
                     userProgress.interactions_done++;
+                    currentUser.interactions = (currentUser.interactions || 0) + 1;
                 }
-                currentUser.interactions = (currentUser.interactions || 0) + 1;
-                document.getElementById('interactionsDone').textContent = currentUser.interactions;
+                document.getElementById('interactionsDone').textContent = userProgress.interactions_done;
                 document.getElementById('pendingNeeded').textContent = Math.max(0, userProgress.required - userProgress.interactions_done);
                 const percent = Math.min(100, (userProgress.interactions_done / userProgress.required) * 100);
                 document.getElementById('progressBar').style.width = percent + '%';
