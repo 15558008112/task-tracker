@@ -115,20 +115,24 @@
             const doneTasks = JSON.parse(localStorage.getItem('done_tasks') || '[]');
             const userTasks = JSON.parse(localStorage.getItem('user_tasks') || '[]');
             
-            if (doneTasks.length === 0 && userTasks.length === 0) {
+            // 合并并只取最新20条
+            let allHistory = [];
+            doneTasks.forEach((taskId, i) => {
+                allHistory.push({ type: '互动', score: 150, positive: true });
+            });
+            userTasks.forEach((task, i) => {
+                allHistory.push({ type: '提交链接', score: -1000, positive: false });
+            });
+            allHistory = allHistory.reverse().slice(0, 20);
+            
+            if (allHistory.length === 0) {
                 historyList.innerHTML = '<p class="text-slate-500 text-center py-4">暂无记录</p>';
             } else {
                 let html = '';
-                doneTasks.forEach((taskId, i) => {
+                allHistory.forEach((item, i) => {
                     html += `<div class="card rounded-lg p-3 flex justify-between items-center">
-                        <span class="text-white">互动积分</span>
-                        <span class="text-green-400 text-sm">+150 积分</span>
-                    </div>`;
-                });
-                userTasks.forEach((task, i) => {
-                    html += `<div class="card rounded-lg p-3 flex justify-between items-center">
-                        <span class="text-white">提交链接</span>
-                        <span class="text-red-400 text-sm">-1000 积分</span>
+                        <span class="text-white">${item.type}</span>
+                        <span class="text-sm ${item.positive ? 'text-green-400' : 'text-red-400'}">${item.positive ? '+' : ''}${item.score} 积分</span>
                     </div>`;
                 });
                 historyList.innerHTML = html;
