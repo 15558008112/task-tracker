@@ -120,7 +120,7 @@
             <div class="grid grid-cols-3 gap-3 mb-6">
                 <div class="card rounded-xl p-4 text-center">
                     <div class="text-2xl font-semibold text-white" id="linksSubmitted">0</div>
-                    <div class="text-xs text-slate-500 mt-1">今日提交</div>
+                    <div class="text-xs text-slate-500 mt-1">推文总数</div>
                 </div>
                 <div class="card rounded-xl p-4 text-center">
                     <div class="text-2xl font-semibold text-white" id="interactionsDone">0</div>
@@ -223,7 +223,7 @@
             document.getElementById('taskCount');
             list.innerHTML = tasks.map(task => {
                 const isDone = task.liked && task.retweeted && task.commented;
-                return '<div class="card rounded-xl p-3 flex items-center justify-between fade-in"><div class="flex items-center gap-3"><img src="' + task.avatar + '" class="w-8 h-8 rounded-full"><span class="text-sm text-white">@' + task.username + '</span></div><button onclick="markAsDone(' + task.id + ')" class="px-4 py-1.5 rounded-lg text-xs font-medium ' + (isDone ? 'bg-white/5 text-slate-500' : 'bg-indigo-500/20 text-indigo-400 border border-indigo-500/30') + '">' + (isDone ? '✓ 已完成' : '去互动') + '</button></div>';
+                return '<div class="card rounded-xl p-3 flex items-center justify-between fade-in"><div class="flex items-center gap-3"><img src="' + task.avatar + '" class="w-8 h-8 rounded-full"><a href="' + task.link + '" target="_blank" class="text-sm text-white hover:text-indigo-400">@' + task.username + '</a></div><a href="' + task.link + '" target="_blank" onclick="setTimeout(() => markAsDone(' + task.id + '), 1500)" class="px-4 py-1.5 rounded-lg text-xs font-medium ' + (isDone ? 'bg-white/5 text-slate-500' : 'bg-indigo-500/20 text-indigo-400 border border-indigo-500/30') + '">' + (isDone ? '✓ 已完成' : '去互动') + '</a></div>';
             }).join('');
         }
         
