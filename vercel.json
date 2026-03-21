@@ -15,6 +15,14 @@
       "dest": "/api/index.py"
     },
     {
+      "src": "/auth/twitter",
+      "dest": "/api/index.py"
+    },
+    {
+      "src": "/callback",
+      "dest": "/api/index.py"
+    },
+    {
       "src": "/(.*)",
       "dest": "/index.html"
     }
