@@ -729,6 +729,13 @@
                 document.getElementById('progressBar').style.width = percent + '%';
                 document.getElementById('progressText').textContent = userProgress.interactions_done + '/' + userProgress.required;
                 
+                // 播放提示音
+                try {
+                    const audio = new Audio('https://www.soundjay.com/buttons/sounds/button-3.mp3');
+                    audio.volume = 0.3;
+                    audio.play();
+                } catch(e) {}
+                
                 // 保存到 localStorage
                 const doneTasks = JSON.parse(localStorage.getItem('done_tasks') || '[]');
                 if (!doneTasks.includes(taskId)) {
