@@ -498,6 +498,9 @@
         }
         
         async function loadTasks() {
+            // 从 localStorage 加载已完成的任务
+            const doneTasks = JSON.parse(localStorage.getItem('done_tasks') || '[]');
+            
             try {
                 const res = await fetch('/api/tasks');
                 allTasks = await res.json();
@@ -507,6 +510,30 @@
                     allTasks.push({id: i, username: 'user_' + i, avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=' + i, link: '#', liked: false, retweeted: false, commented: false});
                 }
             }
+            
+            // 标记已完成的任务
+            allTasks.forEach(task => {
+                if (doneTasks.includes(task.id)) {
+                    task.liked = task.retweeted = task.commented = true;
+                }
+            });
+            
+            // 更新进度条
+            userProgress.interactions_done = doneTasks.length;
+            document.getElementById('interactionsDone').textContent = doneTasks.length;
+            document.getElementById('pendingNeeded').textContent = Math.max(0, userProgress.required - doneTasks.length);
+            const percent = Math.min(100, (doneTasks.length / userProgress.required) * 100);
+            document.getElementById('progressBar').style.width = percent + '%';
+            document.getElementById('progressText').textContent = doneTasks.length + '/' + userProgress.required;
+            
+            if (doneTasks.length >= userProgress.required) {
+                userProgress.is_unlocked = true;
+                document.getElementById('linkInput').disabled = false;
+                document.getElementById('submitBtn').disabled = false;
+                document.getElementById('submitBtn').classList.remove('bg-white/5', 'text-slate-400', 'cursor-not-allowed');
+                document.getElementById('submitBtn').classList.add('bg-indigo-500', 'text-white', 'btn-glow');
+            }
+            
             currentPage = 1;
             renderTasks();
             renderPagination();
