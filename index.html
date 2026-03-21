@@ -346,7 +346,6 @@
             if (saved) {
                 const userData = JSON.parse(saved);
                 currentUser.links = userData.links || 0;
-                document.getElementById('linksSubmitted').textContent = currentUser.links;
             }
             
             showLoggedIn();
@@ -509,7 +508,7 @@
                 console.log('userInfo element not found!');
             }
             document.getElementById('mainContent').classList.remove('hidden');
-            document.getElementById('linksSubmitted').textContent = currentUser.links;
+            document.getElementById('linksSubmitted').textContent = allTasks.length;
             document.getElementById('interactionsDone').textContent = currentUser.interactions;
             loadTasks();
             loadLeaderboard();
@@ -553,6 +552,8 @@
             }
             
             currentPage = 1;
+            // 显示任务池总数
+            document.getElementById('linksSubmitted').textContent = allTasks.length;
             renderTasks();
             renderPagination();
         }
@@ -663,8 +664,6 @@
             if (already) { alert('今日已提交'); return; }
             
             allTasks.unshift({id: allTasks.length + 1, username: currentUser.username, avatar: currentUser.avatar, link: link, liked: false, retweeted: false, commented: false});
-            currentUser.links = (currentUser.links || 0) + 1;
-            document.getElementById('linksSubmitted').textContent = currentUser.links;
             // 保存到 localStorage
             localStorage.setItem('twitter_user', JSON.stringify(currentUser));
             document.getElementById('linkInput').value = '';
