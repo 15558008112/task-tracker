@@ -270,7 +270,7 @@
     </div>
     
     <script>
-        let currentUser = { username: 'guest', avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=guest', links: 0, interactions: 0 };
+        let currentUser = { username: 'guest', avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=guest', links: 0, interactions: 0, score: 0 };
         let userProgress = { interactions_done: 0, required: 3, is_unlocked: false };
         let allTasks = [];
         let currentPage = 1;
@@ -604,17 +604,55 @@
         }
         
         async function loadLeaderboard() {
-            try {
-                const res = await fetch('/api/users');
-                const users = await res.json();
-                renderLeaderboard(users);
-            } catch (e) { renderLeaderboard([]); }
+            // 从 localStorage 加载排行榜
+            let users = JSON.parse(localStorage.getItem('leaderboard') || '[]');
+            
+            // 添加当前用户
+            if (currentUser.username !== 'guest') {
+                const idx = users.findIndex(u => u.username === currentUser.username);
+                const userData = {
+                    username: currentUser.username,
+                    avatar: currentUser.avatar,
+                    score: currentUser.score || 0
+                };
+                if (idx >= 0) {
+                    users[idx] = userData;
+                } else {
+                    users.push(userData);
+                }
+            }
+            
+            // 排序取前10
+            users.sort((a, b) => (b.score || 0) - (a.score || 0));
+            users = users.slice(0, 10);
+            
+            renderLeaderboard(users);
+        }
+        
+        function updateLeaderboard() {
+            // 更新当前用户积分
+            const leaderboard = JSON.parse(localStorage.getItem('leaderboard') || '[]');
+            const idx = leaderboard.findIndex(u => u.username === currentUser.username);
+            const userData = {
+                username: currentUser.username,
+                avatar: currentUser.avatar,
+                score: currentUser.score || 0
+            };
+            if (idx >= 0) {
+                leaderboard[idx] = userData;
+            } else {
+                leaderboard.push(userData);
+            }
+            leaderboard.sort((a, b) => b.score - a.score);
+            leaderboard.splice(10);
+            localStorage.setItem('leaderboard', JSON.stringify(leaderboard));
+            loadLeaderboard();
         }
         
         function renderLeaderboard(users) {
             const medals = ['🥇', '🥈', '🥉'];
             document.getElementById('leaderboardList').innerHTML = users.map((u, i) => 
-                '<div class="card rounded-lg p-3 flex items-center"><span class="w-6 ' + (i < 3 ? 'text-yellow-400' : 'text-slate-500') + '">' + (i < 3 ? medals[i] : i+1) + '</span><img src="' + u.avatar + '" class="w-6 h-6 rounded-full mx-3"><span class="flex-1 text-sm text-white">@' + u.username + '</span><span class="text-xs text-slate-500">' + u.interactions + ' 互动</span></div>'
+                '<div class="card rounded-lg p-3 flex items-center"><span class="w-6 ' + (i < 3 ? 'text-yellow-400' : 'text-slate-500') + '">' + (i < 3 ? medals[i] : i+1) + '</span><img src="' + (u.avatar || u.avatar_url) + '" class="w-6 h-6 rounded-full mx-3"><span class="flex-1 text-sm text-white">@' + u.username + '</span><span class="text-xs text-purple-400 font-bold">' + (u.score || 0) + ' 分</span></div>'
             ).join('');
         }
         
@@ -640,6 +678,10 @@
                     localStorage.setItem('done_tasks', JSON.stringify(doneTasks));
                 }
                 localStorage.setItem('currentUser', JSON.stringify(currentUser));
+                
+                // 更新积分 +350
+                currentUser.score = (currentUser.score || 0) + 350;
+                updateLeaderboard();
                 
                 // 保存到 Supabase
                 fetch('/api/interact', {
@@ -675,6 +717,12 @@
             localStorage.setItem('user_tasks', JSON.stringify(allTasks));
             document.getElementById('linksSubmitted').textContent = allTasks.length;
             document.getElementById('linkInput').value = '';
+            
+            // 更新积分 +200
+            currentUser.score = (currentUser.score || 0) + 200;
+            localStorage.setItem('twitter_user', JSON.stringify(currentUser));
+            updateLeaderboard();
+            
             renderTasks();
             renderPagination();
             alert('提交成功！');
