@@ -1,10 +1,16 @@
+#!/usr/bin/env python3
+"""
+24hclub Task Tracker - Demo Version
+"""
+
 from flask import Flask, render_template, request, redirect, session, jsonify
 import os
+from datetime import datetime
 
 app = Flask(__name__)
-app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'dev-secret-key')
+app.config['SECRET_KEY'] = 'demo-secret-key'
 
-# Demo data for preview
+# Demo data
 DEMO_USERS = [
     {'id': 1, 'username': 'crypto_king', 'name': 'Crypto King', 'avatar_url': 'https://picsum.photos/100', 'links_submitted': 12, 'interactions_done': 45},
     {'id': 2, 'username': 'defi_girl', 'name': 'DeFi Girl', 'avatar_url': 'https://picsum.photos/101', 'links_submitted': 8, 'interactions_done': 32},
@@ -21,11 +27,14 @@ DEMO_TASKS = [
 
 @app.route('/')
 def index():
+    # Mock logged in user
     current_user = DEMO_USERS[0]
+    pending_needed = 0  # User has done enough interactions
+    
     return render_template('index.html', 
                          tasks=DEMO_TASKS,
                          leaderboard=DEMO_USERS,
-                         pending_needed=0,
+                         pending_needed=pending_needed,
                          current_user=current_user)
 
 @app.route('/login')
@@ -35,14 +44,6 @@ def login():
 @app.route('/leaderboard')
 def leaderboard():
     return render_template('leaderboard.html', users=DEMO_USERS)
-
-@app.route('/submit', methods=['POST'])
-def submit():
-    return jsonify({'success': True, 'message': 'Demo mode - submit disabled'})
-
-@app.route('/interact/<int:task_id>/<action>')
-def interact(task_id, action):
-    return jsonify({'success': True})
 
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0', port=5000)
