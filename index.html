@@ -4,152 +4,116 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>24hclub 打卡台</title>
+    <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { 
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: #0a0a0f; color: #fff; min-height: 100vh;
-        }
-        .container { max-width: 800px; margin: 0 auto; padding: 20px; }
-        
-        .header {
-            display: flex; align-items: center; justify-content: space-between;
-            padding: 20px 0; border-bottom: 1px solid #222;
-        }
-        .logo { font-size: 1.5em; font-weight: 700; background: linear-gradient(90deg, #00f0ff, #00ff88); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-        .user-info { display: flex; align-items: center; gap: 12px; }
-        .avatar { width: 40px; height: 40px; border-radius: 50%; }
-        .username { font-weight: 600; }
-        
-        .login-btn {
-            padding: 10px 20px; background: #1da1f2; color: #fff; 
-            border: none; border-radius: 8px; font-weight: 600; cursor: pointer;
-            text-decoration: none; display: inline-block;
+        :root {
+            --bg-dark: #0B0F19;
+            --bg-card: #131B2A;
+            --cyan: #22d3ee;
+            --cyan-glow: rgba(34, 211, 238, 0.2);
         }
         
-        .stats {
-            display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; margin: 20px 0;
-        }
-        .stat-card {
-            background: #16161a; padding: 20px; border-radius: 12px; text-align: center;
-        }
-        .stat-num { font-size: 2em; font-weight: 700; color: #00f0ff; }
-        .stat-num.warning { color: #ff3366; }
-        .stat-label { color: #888; font-size: 0.9em; margin-top: 5px; }
-        
-        .submit-section {
-            background: #16161a; padding: 20px; border-radius: 12px; margin: 20px 0;
-        }
-        .submit-section h3 { margin-bottom: 15px; }
-        .submit-row { display: flex; gap: 10px; }
-        .submit-input {
-            flex: 1; padding: 15px; background: #0a0a0f; border: 1px solid #00f0ff;
-            border-radius: 8px; color: #fff; font-size: 1em;
-        }
-        .submit-btn {
-            padding: 15px 30px; background: #00f0ff; border: none; 
-            border-radius: 8px; color: #000; font-weight: 600; cursor: pointer;
-        }
-        .submit-btn:disabled { background: #333; color: #666; cursor: not-allowed; }
-        
-        .task-list { margin: 20px 0; }
-        .task-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
-        .task-item {
-            background: #16161a; padding: 15px; border-radius: 12px; margin-bottom: 10px;
-            display: flex; align-items: center; justify-content: space-between;
-        }
-        .task-user { display: flex; align-items: center; gap: 10px; flex: 1; min-width: 0; }
-        .task-avatar { width: 36px; height: 36px; border-radius: 50%; flex-shrink: 0; }
-        .task-link {
-            color: #00f0ff; text-decoration: none; font-size: 0.85em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+        body {
+            background-color: var(--bg-dark);
+            color: white;
         }
         
-        /* Single button styles */
-        .action-btn {
-            padding: 10px 20px; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 0.9em; white-space: nowrap;
-            background: linear-gradient(90deg, #00f0ff, #00ff88); color: #000;
-        }
-        .action-btn:hover { opacity: 0.9; }
-        .action-btn.done { 
-            background: #1a1a1a; color: #00ff88; border: 1px solid #00ff88;
+        .glass {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
         }
         
-        .leaderboard { margin-top: 30px; }
-        .leaderboard h3 { margin-bottom: 15px; }
-        .rank-item {
-            display: flex; align-items: center; padding: 12px; background: #16161a;
-            border-radius: 8px; margin-bottom: 8px;
+        .glow-cyan {
+            box-shadow: 0 0 15px var(--cyan-glow);
         }
-        .rank-num { width: 40px; font-weight: 700; font-size: 1.2em; }
-        .rank-num.gold { color: #ffd700; }
-        .rank-num.silver { color: #c0c0c0; }
-        .rank-num.bronze { color: #cd7f32; }
-        .rank-icon { font-size: 1.3em; margin-right: 5px; }
-        .rank-avatar { width: 30px; height: 30px; border-radius: 50%; margin-right: 10px; }
-        .rank-name { flex: 1; }
-        .rank-stats { text-align: right; font-size: 0.85em; color: #888; }
-        .rank-stats .submit-icon { margin-right: 8px; }
-        .rank-stats .interact-icon { margin-left: 8px; }
-        .rank-low { color: #ff3366; font-weight: 600; }
         
-        .warning { color: #ff3366; font-size: 0.9em; margin-top: 10px; }
-        .warning-icon { margin-right: 5px; }
-        .footer { text-align: center; padding: 20px; color: #666; font-size: 0.85em; }
+        .glow-red {
+            box-shadow: 0 0 15px rgba(239, 68, 68, 0.3);
+        }
+        
+        .text-gradient {
+            background: linear-gradient(to right, #22d3ee, #3b82f6);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        .font-mono {
+            font-family: 'Courier New', monospace;
+        }
     </style>
 </head>
-<body>
-    <div class="container">
-        <div class="header">
-            <div class="logo">24hclub</div>
-            <div class="user-info" id="userInfo">
-                <a href="/auth/twitter" class="login-btn">Twitter 登录</a>
+<body class="bg-[#0B0F19] text-white min-h-screen">
+    <div class="max-w-3xl mx-auto px-5 py-6">
+        <!-- Header -->
+        <header class="flex items-center justify-between py-5 border-b border-gray-800">
+            <h1 class="text-2xl font-bold bg-gradient-to-r from-cyan-400 to-green-400 bg-clip-text text-transparent">
+                24hclub
+            </h1>
+            <div id="userInfo">
+                <a href="/auth/twitter" class="px-4 py-2 bg-[#1DA1F2] text-white rounded-lg font-semibold">
+                    Twitter 登录
+                </a>
             </div>
-        </div>
+        </header>
         
-        <div id="mainContent" style="display: none;">
-            <div class="stats">
-                <div class="stat-card">
-                    <div class="stat-num" id="linksSubmitted">0</div>
-                    <div class="stat-label">📤 今日提交</div>
+        <div id="mainContent" class="hidden">
+            <!-- Stats Cards -->
+            <div class="grid grid-cols-3 gap-4 my-5">
+                <!-- 今日提交 -->
+                <div class="glass rounded-2xl p-6 border border-gray-800">
+                    <div class="text-4xl font-bold text-cyan-400" id="linksSubmitted">0</div>
+                    <div class="text-gray-400 text-sm mt-2">📤 今日提交</div>
                 </div>
-                <div class="stat-card">
-                    <div class="stat-num" id="interactionsDone">0</div>
-                    <div class="stat-label">💬 已完成互动</div>
+                
+                <!-- 已完成互动 -->
+                <div class="glass rounded-2xl p-6 border border-gray-800">
+                    <div class="text-4xl font-bold text-gradient" id="interactionsDone">0</div>
+                    <div class="text-gray-400 text-sm mt-2">💬 已完成互动</div>
                 </div>
-                <div class="stat-card">
-                    <div class="stat-num" id="pendingNeeded">5</div>
-                    <div class="stat-label">⏳ 还需互动</div>
+                
+                <!-- 还需互动 -->
+                <div class="glass rounded-2xl p-6 border border-red-500/50 glow-red" id="pendingCard">
+                    <div class="text-4xl font-bold text-red-500" id="pendingNeeded">5</div>
+                    <div class="text-gray-400 text-sm mt-2">⏳ 还需互动</div>
                 </div>
             </div>
             
-            <div class="submit-section">
-                <h3>📤 提交你的链接</h3>
-                <div id="submitForm">
-                    <div class="submit-row">
-                        <input type="text" id="linkInput" class="submit-input" placeholder="粘贴你的Twitter链接...">
-                        <button class="submit-btn" onclick="submitLink()">提交</button>
-                    </div>
+            <!-- Submit Section -->
+            <div class="glass rounded-2xl p-5 my-5">
+                <h3 class="text-lg font-semibold mb-4">📤 提交你的链接</h3>
+                <div id="submitForm" class="flex gap-3">
+                    <input type="text" id="linkInput" 
+                        class="flex-1 px-4 py-3 bg-[#0B0F19] border border-cyan-500/50 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-cyan-400"
+                        placeholder="粘贴你的Twitter链接...">
+                    <button onclick="submitLink()" 
+                        class="px-6 py-3 bg-cyan-500 text-black font-semibold rounded-lg hover:bg-cyan-400 transition-colors">
+                        提交
+                    </button>
                 </div>
-                <p class="warning" id="warningMsg" style="display: none;">
-                    <span class="warning-icon">⚠️</span>需要先完成 <span id="pendingNum">5</span> 次互动才能提交链接
+                <p id="warningMsg" class="hidden mt-3 text-red-500 text-sm">
+                    ⚠️ 需要先完成 <span id="pendingNum">5</span> 次互动才能提交链接
                 </p>
             </div>
             
-            <div class="task-list">
-                <div class="task-header">
-                    <h3>📋 今日任务池</h3>
-                    <span style="color: #888;" id="taskCount">0 个任务</span>
+            <!-- Task List -->
+            <div class="my-5">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="text-lg font-semibold">📋 今日任务池</h3>
+                    <span class="text-gray-400" id="taskCount">0 个任务</span>
                 </div>
-                <div id="taskList"></div>
+                <div id="taskList" class="space-y-3"></div>
             </div>
         </div>
         
-        <div class="leaderboard">
-            <h3>🏆 贡献排行榜</h3>
-            <div id="leaderboardList"></div>
+        <!-- Leaderboard -->
+        <div class="mt-8">
+            <h3 class="text-lg font-semibold mb-4">🏆 贡献排行榜</h3>
+            <div id="leaderboardList" class="space-y-2"></div>
         </div>
         
-        <div class="footer">24hclub Task Tracker</div>
+        <footer class="text-center py-6 text-gray-500 text-sm">
+            24hclub Task Tracker
+        </footer>
     </div>
     
     <script>
@@ -162,7 +126,6 @@
                 currentUser = await res.json();
                 showLoggedIn(currentUser);
             } catch (e) {
-                console.log('Using demo mode');
                 currentUser = {id: 1, username: 'crypto_king', avatar: 'https://picsum.photos/100', links: 12, interactions: 45};
                 showLoggedIn(currentUser);
             }
@@ -170,10 +133,10 @@
         
         function showLoggedIn(user) {
             document.getElementById('userInfo').innerHTML = `
-                <img src="${user.avatar}" class="avatar">
-                <span class="username">@${user.username}</span>
+                <img src="${user.avatar}" class="w-10 h-10 rounded-full">
+                <span class="font-semibold">@${user.username}</span>
             `;
-            document.getElementById('mainContent').style.display = 'block';
+            document.getElementById('mainContent').classList.remove('hidden');
             
             document.getElementById('linksSubmitted').textContent = user.links;
             document.getElementById('interactionsDone').textContent = user.interactions;
@@ -182,16 +145,20 @@
             document.getElementById('pendingNeeded').textContent = pending;
             document.getElementById('pendingNum').textContent = pending;
             
+            const pendingCard = document.getElementById('pendingCard');
             if (pending > 0) {
-                document.getElementById('pendingNeeded').classList.add('warning');
+                pendingCard.classList.add('glow-red', 'border-red-500/50');
+                document.getElementById('pendingNeeded').classList.add('text-red-500');
+            } else {
+                pendingCard.classList.remove('glow-red', 'border-red-500/50');
             }
             
             if (user.interactions >= 5) {
-                document.getElementById('submitForm').style.display = 'block';
-                document.getElementById('warningMsg').style.display = 'none';
+                document.getElementById('submitForm').classList.remove('hidden');
+                document.getElementById('warningMsg').classList.add('hidden');
             } else {
-                document.getElementById('submitForm').style.display = 'none';
-                document.getElementById('warningMsg').style.display = 'block';
+                document.getElementById('submitForm').classList.add('hidden');
+                document.getElementById('warningMsg').classList.remove('hidden');
             }
             
             loadTasks();
@@ -230,13 +197,19 @@
             list.innerHTML = tasks.map(task => {
                 const isDone = task.liked && task.retweeted && task.commented;
                 return `
-                <div class="task-item">
-                    <div class="task-user">
-                        <img src="${task.avatar}" class="task-avatar">
-                        <a href="${task.link}" target="_blank" class="task-link">@${task.username} 的推文</a>
+                <div class="bg-[#131B2A] rounded-xl p-4 flex items-center justify-between border border-gray-800 hover:border-cyan-500/50 transition-colors">
+                    <div class="flex items-center gap-3 flex-1 min-w-0">
+                        <img src="${task.avatar}" class="w-9 h-9 rounded-full border border-gray-600">
+                        <a href="${task.link}" target="_blank" class="text-gray-300 truncate hover:text-cyan-400">
+                            @${task.username} 的推文
+                        </a>
                     </div>
-                    <a href="${task.link}" target="_blank" class="action-btn ${isDone ? 'done' : ''}" onclick="markAsDone(event, ${task.id})">
-                        ${isDone ? '✓ 已完成' : '去互动 →'}
+                    <a href="${task.link}" target="_blank" 
+                        class="${isDone 
+                            ? 'bg-gray-800/50 text-gray-500 border border-gray-700 px-6 py-2 rounded-lg font-mono text-sm cursor-not-allowed' 
+                            : 'bg-cyan-500/10 text-cyan-400 border border-cyan-500/50 hover:bg-cyan-500/20 px-6 py-2 rounded-lg font-mono text-sm uppercase tracking-wider transition-all shadow-[0_0_10px_rgba(34,211,238,0.2)]'}"
+                        onclick="${isDone ? '' : `markAsDone(event, ${task.id})`}">
+                        ${isDone ? 'DONE' : 'ACTION'}
                     </a>
                 </div>
             `}).join('');
@@ -247,22 +220,21 @@
             const medals = ['🥇', '🥈', '🥉'];
             
             list.innerHTML = users.map((u, i) => `
-                <div class="rank-item">
-                    <span class="rank-num ${i === 0 ? 'gold' : (i === 1 ? 'silver' : (i === 2 ? 'bronze' : ''))}">
+                <div class="bg-[#131B2A] rounded-lg p-3 flex items-center ${u.interactions < 5 ? 'border border-red-500/30' : ''}">
+                    <span class="w-8 text-lg font-bold ${i === 0 ? 'text-yellow-400' : (i === 1 ? 'text-gray-300' : (i === 2 ? 'text-orange-400' : 'text-gray-500'))}">
                         ${i < 3 ? medals[i] : (i + 1)}
                     </span>
-                    <img src="${u.avatar}" class="rank-avatar">
-                    <span class="rank-name ${u.interactions < 5 ? 'rank-low' : ''}">@${u.username}</span>
-                    <div class="rank-stats" style="${u.interactions < 5 ? 'color: #ff3366;' : ''}">
-                        <span class="submit-icon">📤${u.links}</span>
-                        <span class="interact-icon">💬${u.interactions}</span>
+                    <img src="${u.avatar}" class="w-8 h-8 rounded-full mr-3">
+                    <span class="flex-1 ${u.interactions < 5 ? 'text-red-500 font-semibold' : ''}">@${u.username}</span>
+                    <div class="text-right text-sm ${u.interactions < 5 ? 'text-red-500' : 'text-gray-400'}">
+                        <span>📤${u.links}</span>
+                        <span class="ml-3">💬${u.interactions}</span>
                     </div>
                 </div>
             `).join('');
         }
         
         function markAsDone(event, taskId) {
-            // Mark as done after user clicks
             setTimeout(() => {
                 const task = tasks.find(t => t.id === taskId);
                 if (task) {
@@ -271,7 +243,7 @@
                     task.commented = true;
                     renderTasks(tasks);
                 }
-            }, 2000); // Give user time to interact
+            }, 2000);
         }
         
         function submitLink() {
