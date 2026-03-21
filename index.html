@@ -182,20 +182,33 @@
         updateCountdown();
         
         function init() {
+            // 💥 诊断日志
+            console.log("【MATRIX DIAGNOSTIC】Starting init...");
+            
             // Check URL params for Twitter user
             const params = new URLSearchParams(window.location.search);
             const twitterUser = params.get('twitter_user');
             const twitterName = params.get('twitter_name');
             const twitterAvatar = params.get('twitter_avatar');
             
+            console.log("【MATRIX DIAGNOSTIC】URL params:", { twitterUser, twitterName, twitterAvatar });
+            
             if (twitterUser) {
+                // 处理高清头像
+                let avatarUrl = twitterAvatar || 'https://api.dicebear.com/7.x/avataaars/svg?seed=' + twitterUser;
+                // 去掉 _normal 后缀
+                avatarUrl = avatarUrl.replace('_normal', '');
+                
                 currentUser = {
                     username: twitterUser,
                     name: twitterName || twitterUser,
-                    avatar: twitterAvatar || 'https://api.dicebear.com/7.x/avataaars/svg?seed=' + twitterUser,
+                    avatar: avatarUrl,
                     links: 0,
                     interactions: 0
                 };
+                
+                console.log("【MATRIX DIAGNOSTIC】Setting user from Twitter:", currentUser);
+                
                 // Save to localStorage
                 localStorage.setItem('twitter_user', JSON.stringify(currentUser));
                 // Clean URL
@@ -206,9 +219,14 @@
                 if (saved) {
                     try {
                         currentUser = JSON.parse(saved);
-                    } catch(e) {}
+                        console.log("【MATRIX DIAGNOSTIC】Loaded from localStorage:", currentUser);
+                    } catch(e) {
+                        console.log("【MATRIX DIAGNOSTIC】localStorage parse error:", e);
+                    }
                 }
             }
+            
+            console.log("【MATRIX DIAGNOSTIC】Final currentUser:", currentUser);
             showLoggedIn();
         }
         
