@@ -204,7 +204,7 @@
             <!-- 导航菜单 -->
             <div class="flex items-center gap-2">
                 <button onclick="document.getElementById('leaderboardSection').scrollIntoView({behavior: 'smooth'})" class="px-3 py-1.5 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg text-sm text-white transition-all">贡献榜</button>
-                <button onclick="alert('个人中心功能开发中')" class="px-3 py-1.5 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg text-sm text-white transition-all">个人中心</button>
+                <button onclick="showProfile()" class="px-3 py-1.5 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg text-sm text-white transition-all">个人中心</button>
             </div>
             
             <div id="userInfo" class="flex items-center gap-2">
@@ -516,6 +516,15 @@
             } catch (e) {
                 console.error(e);
             }
+        }
+        
+        function showProfile() {
+            // 获取用户积分
+            const leaderboard = JSON.parse(localStorage.getItem('leaderboard') || '[]');
+            const userData = leaderboard.find(u => u.username === currentUser.username);
+            const totalScore = userData ? userData.score : 0;
+            
+            alert('个人中心\n\n用户名: @' + currentUser.username + '\n总积分: ' + totalScore + ' 分');
         }
         
         function showLoggedIn() {
