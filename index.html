@@ -607,6 +607,12 @@
             // 从 localStorage 加载排行榜
             let users = JSON.parse(localStorage.getItem('leaderboard') || '[]');
             
+            // 如果没有数据，显示空数据提示
+            if (users.length === 0) {
+                // 显示前10名空位
+                users = [];
+            }
+            
             // 添加当前用户
             if (currentUser.username !== 'guest') {
                 const idx = users.findIndex(u => u.username === currentUser.username);
