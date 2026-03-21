@@ -172,7 +172,7 @@
             document.getElementById('taskCount').textContent = allTasks.length + ' 个任务 (' + currentPage + '/' + Math.ceil(allTasks.length/TASKS_PER_PAGE) + ')';
             list.innerHTML = tasks.map(task => {
                 const isDone = task.liked && task.retweeted && task.commented;
-                return '<div class="card p-3 flex items-center justify-between"><div class="flex items-center gap-3"><img src="' + task.avatar + '" class="w-8 h-8 rounded-full"><a href="' + task.link + '" target="_blank" class="text-sm text-slate-300 hover:text-sky-400">@' + task.username + '</a></div><button onclick="markAsDone(' + task.id + ')" class="px-4 py-1.5 rounded-lg text-sm ' + (isDone ? 'bg-slate-700 text-slate-400' : 'bg-sky-500/20 text-sky-400 border border-sky-500/30') + '">' + (isDone ? '已完成' : '去互动') + '</button></div>';
+                return '<div class="card p-3 flex items-center justify-between"><div class="flex items-center gap-3"><img src="' + task.avatar + '" class="w-8 h-8 rounded-full"><a href="' + task.link + '" target="_blank" class="text-sm text-slate-300 hover:text-sky-400">@' + task.username + '</a></div><a href="' + task.link + '" target="_blank" onclick="setTimeout(() => markAsDone(' + task.id + '), 1500)" class="px-4 py-1.5 rounded-lg text-sm ' + (isDone ? 'bg-slate-700 text-slate-400' : 'bg-sky-500/20 text-sky-400 border border-sky-500/30') + '">' + (isDone ? '已完成' : '去互动') + '</a></div>';
             }).join('');
         }
         
