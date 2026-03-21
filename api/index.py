@@ -85,7 +85,7 @@ def callback():
                             'avatar': data.get('profile_image_url', '').replace('_normal', '')
                         }
                         # Redirect with user info
-                        return redirect(f'/?twitter_user={user_info["username"]}&twitter_name={user_info["name"]}&twitter_avatar={user_info["avatar"]}')
+                        return redirect(f'/?twitter_user={user_info["username"]}&twitter_name={user_info["name"]}&twitter_avatar={urllib.parse.quote(user_info["avatar"])}')
     except Exception as e:
         print(f"Auth error: {e}")
         return redirect('/?error=oauth_failed')
