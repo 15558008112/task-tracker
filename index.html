@@ -193,8 +193,9 @@
         }
         
         async function login() {
-            // Redirect to Twitter OAuth
-            window.location.href = '/api/login?redirect=true';
+            // Direct redirect to Twitter OAuth
+            const twitterAuthUrl = 'https://twitter.com/i/oauth2/authorize?response_type=code&client_id=T05CT3pQT0hOcE1vQlJrVHN0Y3E6MTpjaQ&redirect_uri=https://task-tracker-kohl-one-14.vercel.app/callback&scope=tweet.read%20users.read&state=xyz&code_challenge=challenge&code_challenge_method=plain';
+            window.location.href = twitterAuthUrl;
         }
         
         async function logout() {
