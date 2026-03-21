@@ -13,38 +13,12 @@
         
         const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
         
-        // 触发登录 - 用户名秒登
-        async function login() {
-            const username = prompt('请输入 Twitter 用户名（不带@）');
-            if (username && username.trim()) {
-                const u = username.trim().replace('@', '');
-                let avatar = 'https://api.dicebear.com/7.x/avataaars/svg?seed=' + u;
-                
-                // 尝试通过 API 获取真实头像
-                try {
-                    const res = await fetch('https://api.allorigins.win/raw?url=' + encodeURIComponent('https://twitter.com/' + u));
-                    if (res.ok) {
-                        const html = await res.text();
-                        const match = html.match(/"profile_image_url_https":"([^"]+)"/);
-                        if (match && match[1]) {
-                            avatar = match[1].replace('_normal', '');
-                        }
-                    }
-                } catch(e) { console.log('Avatar fetch failed'); }
-                
-                currentUser = {
-                    username: u,
-                    name: u,
-                    avatar: avatar,
-                    links: 0,
-                    interactions: 0
-                };
-                localStorage.setItem('twitter_user', JSON.stringify(currentUser));
-                showLoggedIn();
-            }
+        // 触发登录 - OAuth 2.0
+        function login() {
+            window.location.href = '/auth/twitter';
         }
         
-        // 用户名登录 - 尝试获取真实头像
+        // 备用：用户名登录
         async function loginWithUsername(username) {
             username = username.trim().replace('@', '');
             
