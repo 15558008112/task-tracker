@@ -13,9 +13,21 @@
         
         const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
         
-        // 触发登录 - 调用后端 OAuth
+        // 触发登录 - 用户名秒登
         function login() {
-            window.location.href = '/auth/twitter';
+            const username = prompt('请输入 Twitter 用户名（不带@）');
+            if (username && username.trim()) {
+                const u = username.trim().replace('@', '');
+                currentUser = {
+                    username: u,
+                    name: u,
+                    avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=' + u,
+                    links: 0,
+                    interactions: 0
+                };
+                localStorage.setItem('twitter_user', JSON.stringify(currentUser));
+                showLoggedIn();
+            }
         }
         
         // 用户名登录 - 尝试获取真实头像
