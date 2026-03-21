@@ -746,6 +746,13 @@
                 // 更新积分 +150
                 currentUser.score = (currentUser.score || 0) + 150;
                 localStorage.setItem('twitter_user', JSON.stringify(currentUser));
+                
+                // 保存历史记录
+                const historyKey = 'history_' + currentUser.username;
+                const history = JSON.parse(localStorage.getItem(historyKey) || '[]');
+                history.push({ type: '互动', score: 150, time: Date.now() });
+                localStorage.setItem(historyKey, JSON.stringify(history.slice(-50)));
+                
                 updateLeaderboard();
                 
                 // 保存到 Supabase
