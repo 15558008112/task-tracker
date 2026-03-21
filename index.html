@@ -231,8 +231,80 @@
         }
         
         function login() {
-            // Use proper Twitter OAuth v2
-            window.location.href = '/auth/twitter';
+            // 简化：让用户输入用户名，然后获取真实头像
+            const username = prompt('请输入你的 Twitter 用户名（不带@）');
+            if (username) {
+                loginWithUsername(username);
+            }
+        }
+        
+        async function loginWithUsername(username) {
+            username = username.trim().replace('@', '');
+            if (!username) return;
+            
+            console.log("【MATRIX DIAGNOSTIC】Fetching avatar for:", username);
+            
+            // 尝试获取真实头像
+            try {
+                // 方法1: 用 Twitter API
+                const response = await fetch('https://api.twitter.com/2/users/by/username/' + username + '?user.fields=profile_image_url', {
+                    headers: {
+                        'Authorization': 'Bearer AAAAAAAAAAAAAAAAAAAAAI4%2FjkEAAAAA0t2L2XaNXLQa1uqy1W6Z8WkZ7k%3DqQ3m0gBzY0yJ0vG2pGxY9Z1N2XaNXLQa1uqy1W6Z8WkZ7k'
+                    }
+                });
+                if (response.ok) {
+                    const data = await response.json();
+                    console.log("【MATRIX DIAGNOSTIC】Twitter API response:", data);
+                    if (data.data) {
+                        currentUser = {
+                            username: data.data.username,
+                            name: data.data.name || data.data.username,
+                            avatar: data.data.profile_image_url.replace('_normal', ''),
+                            links: 0,
+                            interactions: 0
+                        };
+                        console.log("【MATRIX DIAGNOSTIC】Got real user:", currentUser);
+                        localStorage.setItem('twitter_user', JSON.stringify(currentUser));
+                        showLoggedIn();
+                        return;
+                    }
+                }
+            } catch (e) {
+                console.log("【MATRIX DIAGNOSTIC】API error:", e);
+            }
+            
+            // 回退：用 nitter 或其他
+            try {
+                const nitterResponse = await fetch('https://nitter.net/' + username);
+                if (nitterResponse.ok) {
+                    const html = await nitterResponse.text();
+                    const avatarMatch = html.match(/"profile-image" src="([^"]+)"/);
+                    if (avatarMatch) {
+                        let avatar = avatarMatch[1].replace('_normal', '');
+                        currentUser = {
+                            username: username,
+                            name: username,
+                            avatar: avatar,
+                            links: 0,
+                            interactions: 0
+                        };
+                        localStorage.setItem('twitter_user', JSON.stringify(currentUser));
+                        showLoggedIn();
+                        return;
+                    }
+                }
+            } catch (e2) {}
+            
+            // 最终回退：dicebear
+            currentUser = {
+                username: username,
+                name: username,
+                avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=' + username,
+                links: 0,
+                interactions: 0
+            };
+            localStorage.setItem('twitter_user', JSON.stringify(currentUser));
+            showLoggedIn();
         }
         
         async function loginWithUsername() {
