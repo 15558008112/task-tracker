@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>排行榜 - 24hclub</title>
+    <style>
+        body { 
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #0a0a0f; color: #fff; min-height: 100vh;
+        }
+        .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+        h1 { text-align: center; margin-bottom: 20px; }
+        .rank-item {
+            display: flex; align-items: center; padding: 15px; background: #16161a;
+            border-radius: 12px; margin-bottom: 10px;
+        }
+        .rank-num { 
+            width: 40px; font-size: 1.5em; font-weight: 700; 
+            color: #00f0ff; text-align: center;
+        }
+        .rank-1 { color: #ffd700; }
+        .rank-2 { color: #c0c0c0; }
+        .rank-3 { color: #cd7f32; }
+        .rank-avatar { width: 40px; height: 40px; border-radius: 50%; margin: 0 15px; }
+        .rank-name { flex: 1; font-weight: 600; }
+        .rank-low { color: #ff3366; }
+        .rank-stats { text-align: right; font-size: 0.85em; color: #888; }
+        .back { display: block; text-align: center; margin-top: 20px; color: #00f0ff; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>贡献排行榜</h1>
+        
+        {% for user in users %}
+        <div class="rank-item">
+            <span class="rank-num {% if loop.index == 1 %}rank-1{% elif loop.index == 2 %}rank-2{% elif loop.index == 3 %}rank-3{% endif %}">
+                {{ loop.index }}
+            </span>
+            <img src="{{ user.avatar_url }}" class="rank-avatar">
+            <span class="rank-name {% if user.interactions_done < 5 %}rank-low{% endif %}">
+                @{{ user.username }}
+            </span>
+            <div class="rank-stats">
+                提交: {{ user.links_submitted }}<br>
+                互动: {{ user.interactions_done }}
+            </div>
+        </div>
+        {% endfor %}
+        
+        <a href="/" class="back">← 返回首页</a>
+    </div>
+</body>
+</html>

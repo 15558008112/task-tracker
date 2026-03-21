@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>24hclub 打卡台</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { 
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #0a0a0f; color: #fff; min-height: 100vh;
+        }
+        .container { max-width: 800px; margin: 0 auto; padding: 20px; }
+        
+        /* Header */
+        .header {
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 20px 0; border-bottom: 1px solid #222;
+        }
+        .user-info { display: flex; align-items: center; gap: 12px; }
+        .avatar { width: 40px; height: 40px; border-radius: 50%; }
+        .username { font-weight: 600; }
+        
+        /* Stats */
+        .stats {
+            display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; margin: 20px 0;
+        }
+        .stat-card {
+            background: #16161a; padding: 20px; border-radius: 12px; text-align: center;
+        }
+        .stat-num { font-size: 2em; font-weight: 700; color: #00f0ff; }
+        .stat-label { color: #888; font-size: 0.9em; margin-top: 5px; }
+        
+        /* Submit Section */
+        .submit-section {
+            background: #16161a; padding: 20px; border-radius: 12px; margin: 20px 0;
+        }
+        .submit-section h3 { margin-bottom: 15px; }
+        .submit-input {
+            width: 100%; padding: 15px; background: #0a0a0f; border: 1px solid #333;
+            border-radius: 8px; color: #fff; font-size: 1em;
+        }
+        .submit-btn {
+            width: 100%; margin-top: 10px; padding: 15px; background: linear-gradient(90deg, #00f0ff, #00ff88);
+            border: none; border-radius: 8px; color: #000; font-weight: 600; cursor: pointer;
+        }
+        .submit-btn:disabled { background: #333; color: #666; cursor: not-allowed; }
+        
+        /* Task List */
+        .task-list { margin: 20px 0; }
+        .task-item {
+            background: #16161a; padding: 15px; border-radius: 12px; margin-bottom: 10px;
+            display: flex; align-items: center; justify-content: space-between;
+        }
+        .task-link {
+            color: #00f0ff; text-decoration: none; flex: 1;
+        }
+        .task-actions { display: flex; gap: 8px; }
+        .action-btn {
+            padding: 8px 16px; border: none; border-radius: 6px; cursor: pointer; font-size: 0.85em;
+        }
+        .action-btn.like { background: #1da1f2; color: #fff; }
+        .action-btn.retweet { background: #00ff88; color: #000; }
+        .action-btn.comment { background: #ff6b6b; color: #fff; }
+        .action-btn.done { background: #333; color: #666; cursor: default; }
+        
+        /* Leaderboard */
+        .leaderboard { margin-top: 30px; }
+        .leaderboard h3 { margin-bottom: 15px; }
+        .rank-item {
+            display: flex; align-items: center; padding: 12px; background: #16161a;
+            border-radius: 8px; margin-bottom: 8px;
+        }
+        .rank-num { width: 30px; font-weight: 700; color: #888; }
+        .rank-avatar { width: 30px; height: 30px; border-radius: 50%; margin-right: 10px; }
+        .rank-name { flex: 1; }
+        .rank-stats { text-align: right; font-size: 0.85em; color: #888; }
+        .rank-low { color: #ff3366; } /* Red for low contribution */
+        
+        /* Warning */
+        .warning { color: #ff3366; font-size: 0.9em; margin-top: 10px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <h1>24hclub 打卡台</h1>
+            <div class="user-info">
+                <img src="{{ current_user.avatar_url }}" class="avatar">
+                <span class="username">@{{ current_user.username }}</span>
+            </div>
+        </div>
+        
+        <!-- Stats -->
+        <div class="stats">
+            <div class="stat-card">
+                <div class="stat-num">{{ current_user.links_submitted }}</div>
+                <div class="stat-label">今日提交</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-num">{{ current_user.interactions_done }}</div>
+                <div class="stat-label">已完成互动</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-num">{{ pending_needed }}</div>
+                <div class="stat-label">还需互动</div>
+            </div>
+        </div>
+        
+        <!-- Submit Section -->
+        <div class="submit-section">
+            <h3>提交你的链接</h3>
+            {% if pending_needed > 0 %}
+            <p class="warning">⚠️ 需要先完成 {{ pending_needed }} 次互动才能提交链接</p>
+            {% else %}
+            <form method="POST" action="/submit">
+                <input type="text" name="link" class="submit-input" placeholder="粘贴你的Twitter链接...">
+                <button type="submit" class="submit-btn">提交</button>
+            </form>
+            {% endif %}
+        </div>
+        
+        <!-- Task List -->
+        <div class="task-list">
+            <h3>今日任务池</h3>
+            {% for task in tasks %}
+            <div class="task-item">
+                <a href="{{ task.twitter_link }}" target="_blank" class="task-link">
+                    {{ task.twitter_link[:50] }}...
+                </a>
+                <div class="task-actions">
+                    {% if task.liked %}
+                    <button class="action-btn done">👍</button>
+                    {% else %}
+                    <button class="action-btn like" onclick="interact({{ task.id }}, 'like')">👍 赞</button>
+                    {% endif %}
+                    
+                    {% if task.retweeted %}
+                    <button class="action-btn done">🔄</button>
+                    {% else %}
+                    <button class="action-btn retweet" onclick="interact({{ task.id }}, 'retweet')">🔄 转</button>
+                    {% endif %}
+                    
+                    {% if task.commented %}
+                    <button class="action-btn done">💬</button>
+                    {% else %}
+                    <button class="action-btn comment" onclick="interact({{ task.id }}, 'comment')">💬 评</button>
+                    {% endif %}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        
+        <!-- Leaderboard -->
+        <div class="leaderboard">
+            <h3>贡献排行榜</h3>
+            {% for user in leaderboard %}
+            <div class="rank-item">
+                <span class="rank-num">#{{ loop.index }}</span>
+                <img src="{{ user.avatar_url }}" class="rank-avatar">
+                <span class="rank-name {% if user.interactions_done < 5 %}rank-low{% endif %}">
+                    @{{ user.username }}
+                </span>
+                <div class="rank-stats">
+                    提交: {{ user.links_submitted }} | 互动: {{ user.interactions_done }}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    
+    <script>
+        async function interact(taskId, action) {
+            const res = await fetch(`/interact/${taskId}/${action}`, { method: 'POST' });
+            const data = await res.json();
+            if (data.success) {
+                location.reload();
+            } else {
+                alert(data.error);
+            }
+        }
+    </script>
+</body>
+</html>
