@@ -5,6 +5,84 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>24h 交互矩阵</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script>
+        // Supabase 配置
+        const SUPABASE_URL = 'https://vejicltqodkdjchqlrqx.supabase.co';
+        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZlamljbHRxb2RkZGpjaHFscnF4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQwOTcxMDgsImV4cCI6MjA4OTY3MzEwOH0.uNeQttyjwZTjVhicd0oftdgWIkvdqFrtXLaCe9mjrJE';
+        
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+        
+        // 🚀 触发 Twitter 登录
+        async function login() {
+            const { data, error } = await supabase.auth.signInWithOAuth({
+                provider: 'twitter',
+                options: {
+                    redirectTo: window.location.origin + '/'
+                }
+            });
+            
+            if (error) {
+                console.error('Login error:', error);
+                alert('登录失败: ' + error.message);
+            }
+        }
+        
+        // 🚀 监听 auth 状态变化
+        supabase.auth.onAuthStateChange((event, session) => {
+            console.log('【SUPABASE】Auth event:', event);
+            console.log('【SUPABASE】Session:', session);
+            
+            if (event === 'SIGNED_IN' && session) {
+                // 从 Supabase session 提取 Twitter 真实信息
+                const user = session.user;
+                const metadata = user.user_metadata;
+                
+                console.log('【SUPABASE】User metadata:', metadata);
+                
+                // 提取头像和昵称
+                let avatar = metadata.avatar_url || '';
+                let username = metadata.preferred_username || metadata.full_name || user.email;
+                
+                // 处理高清头像
+                avatar = avatar.replace('_normal', '');
+                
+                console.log('【SUPABASE】Got user:', { username, avatar });
+                
+                // 更新 currentUser
+                currentUser = {
+                    username: username,
+                    name: username,
+                    avatar: avatar || 'https://api.dicebear.com/7.x/avataaars/svg?seed=' + username,
+                    links: 0,
+                    interactions: 0
+                };
+                
+                localStorage.setItem('twitter_user', JSON.stringify(currentUser));
+                showLoggedIn();
+            }
+        });
+        
+        // 检查当前登录状态
+        async function checkAuth() {
+            const { data: { session } } = await supabase.auth.getSession();
+            if (session) {
+                const user = session.user;
+                const metadata = user.user_metadata;
+                let avatar = (metadata.avatar_url || '').replace('_normal', '');
+                let username = metadata.preferred_username || metadata.full_name || user.email;
+                
+                currentUser = {
+                    username: username,
+                    name: username,
+                    avatar: avatar || 'https://api.dicebear.com/7.x/avataaars/svg?seed=' + username,
+                    links: 0,
+                    interactions: 0
+                };
+                showLoggedIn();
+            }
+        }
+    </script>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
         * { font-family: 'Outfit', sans-serif; }
