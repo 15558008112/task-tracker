@@ -13,40 +13,46 @@
         
         const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
         
-        // 🚀 触发 Twitter 登录
+        // 🚀 触发登录 - 简化为用户名输入
         async function login() {
-            try {
-                const { data, error } = await supabase.auth.signInWithOAuth({
-                    provider: 'twitter',
-                    options: {
-                        redirectTo: 'https://task-tracker-kohl-one-14.vercel.app'
-                    }
-                });
-                
-                if (error) {
-                    console.error('Login error:', error);
-                    // 备用方案：让用户输入用户名
-                    const username = prompt('OAuth登录失败，请输入你的Twitter用户名（不带@）:');
-                    if (username) {
-                        loginWithUsername(username);
-                    }
-                }
-            } catch (e) {
-                console.error('Exception:', e);
-                const username = prompt('请输入你的Twitter用户名（不带@）:');
-                if (username) {
-                    loginWithUsername(username);
-                }
+            const username = prompt('请输入你的 Twitter 用户名（不带@）');
+            if (username && username.trim()) {
+                loginWithUsername(username.trim());
             }
         }
         
-        // 备用：用户名登录
+        // 用户名登录 - 尝试获取真实头像
         async function loginWithUsername(username) {
             username = username.trim().replace('@', '');
+            
+            let avatar = '';
+            let name = username;
+            
+            // 尝试从 Nitter 获取真实头像
+            try {
+                const response = await fetch('https://nitter.net/' + username, { mode: 'cors' });
+                if (response.ok) {
+                    const html = await response.text();
+                    // 提取头像
+                    const avatarMatch = html.match(/profile-popup__avatar[^>]*src="([^"]+)"/);
+                    if (avatarMatch && avatarMatch[1]) {
+                        avatar = avatarMatch[1].replace('_normal', '').split('?')[0];
+                        console.log('Got avatar:', avatar);
+                    }
+                    // 提取名字
+                    const nameMatch = html.match(/<a[^>]+class="profile-name"[^>]*>([^<]+)<\/a>/);
+                    if (nameMatch && nameMatch[1]) {
+                        name = nameMatch[1].trim();
+                    }
+                }
+            } catch(e) {
+                console.log('Nitter failed, using fallback');
+            }
+            
             currentUser = {
                 username: username,
-                name: username,
-                avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=' + username,
+                name: name,
+                avatar: avatar || 'https://api.dicebear.com/7.x/avataaars/svg?seed=' + username,
                 links: 0,
                 interactions: 0
             };
