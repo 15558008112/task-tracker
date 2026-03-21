@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>24hclub 打卡台</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { 
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #0a0a0f; color: #fff; min-height: 100vh;
+        }
+        .container { max-width: 800px; margin: 0 auto; padding: 20px; }
+        
+        /* Header */
+        .header {
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 20px 0; border-bottom: 1px solid #222;
+        }
+        .logo { font-size: 1.5em; font-weight: 700; background: linear-gradient(90deg, #00f0ff, #00ff88); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .user-info { display: flex; align-items: center; gap: 12px; }
+        .avatar { width: 40px; height: 40px; border-radius: 50%; }
+        .username { font-weight: 600; }
+        
+        /* Stats */
+        .stats {
+            display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; margin: 20px 0;
+        }
+        .stat-card {
+            background: #16161a; padding: 20px; border-radius: 12px; text-align: center;
+        }
+        .stat-num { font-size: 2em; font-weight: 700; color: #00f0ff; }
+        .stat-label { color: #888; font-size: 0.9em; margin-top: 5px; }
+        
+        /* Submit Section */
+        .submit-section {
+            background: #16161a; padding: 20px; border-radius: 12px; margin: 20px 0;
+        }
+        .submit-section h3 { margin-bottom: 15px; }
+        .submit-input {
+            width: 100%; padding: 15px; background: #0a0a0f; border: 1px solid #333;
+            border-radius: 8px; color: #fff; font-size: 1em;
+        }
+        .submit-btn {
+            width: 100%; margin-top: 10px; padding: 15px; background: linear-gradient(90deg, #00f0ff, #00ff88);
+            border: none; border-radius: 8px; color: #000; font-weight: 600; cursor: pointer;
+        }
+        .submit-btn:disabled { background: #333; color: #666; cursor: not-allowed; }
+        
+        /* Task List */
+        .task-list { margin: 20px 0; }
+        .task-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
+        .task-item {
+            background: #16161a; padding: 15px; border-radius: 12px; margin-bottom: 10px;
+            display: flex; align-items: center; justify-content: space-between;
+        }
+        .task-user { display: flex; align-items: center; gap: 10px; }
+        .task-avatar { width: 36px; height: 36px; border-radius: 50%; }
+        .task-link {
+            color: #00f0ff; text-decoration: none; font-size: 0.85em;
+        }
+        .task-actions { display: flex; gap: 8px; }
+        .action-btn {
+            padding: 8px 16px; border: none; border-radius: 6px; cursor: pointer; font-size: 0.85em;
+        }
+        .action-btn.like { background: #1da1f2; color: #fff; }
+        .action-btn.retweet { background: #00ff88; color: #000; }
+        .action-btn.comment { background: #ff6b6b; color: #fff; }
+        .action-btn.done { background: #333; color: #666; cursor: default; }
+        
+        /* Leaderboard */
+        .leaderboard { margin-top: 30px; }
+        .leaderboard h3 { margin-bottom: 15px; }
+        .rank-item {
+            display: flex; align-items: center; padding: 12px; background: #16161a;
+            border-radius: 8px; margin-bottom: 8px;
+        }
+        .rank-num { width: 30px; font-weight: 700; color: #888; }
+        .rank-avatar { width: 30px; height: 30px; border-radius: 50%; margin-right: 10px; }
+        .rank-name { flex: 1; }
+        .rank-stats { text-align: right; font-size: 0.85em; color: #888; }
+        .rank-low { color: #ff3366; font-weight: 600; }
+        
+        /* Warning */
+        .warning { color: #ff3366; font-size: 0.9em; margin-top: 10px; }
+        
+        /* Footer */
+        .footer { text-align: center; padding: 20px; color: #666; font-size: 0.85em; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <div class="logo">24hclub</div>
+            <div class="user-info">
+                <img src="https://picsum.photos/100" class="avatar">
+                <span class="username">@crypto_king</span>
+            </div>
+        </div>
+        
+        <!-- Stats -->
+        <div class="stats">
+            <div class="stat-card">
+                <div class="stat-num">12</div>
+                <div class="stat-label">今日提交</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-num">45</div>
+                <div class="stat-label">已完成互动</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-num">0</div>
+                <div class="stat-label">还需互动</div>
+            </div>
+        </div>
+        
+        <!-- Submit Section -->
+        <div class="submit-section">
+            <h3>提交你的链接</h3>
+            <input type="text" class="submit-input" placeholder="粘贴你的Twitter链接...">
+            <button class="submit-btn" onclick="alert('Demo模式 - 暂时无法提交')">提交</button>
+        </div>
+        
+        <!-- Task List -->
+        <div class="task-list">
+            <div class="task-header">
+                <h3>今日任务池</h3>
+                <span style="color: #888;">3 个任务</span>
+            </div>
+            
+            <div class="task-item">
+                <div class="task-user">
+                    <img src="https://picsum.photos/100" class="task-avatar">
+                    <a href="https://x.com/crypto_king/status/123456789" target="_blank" class="task-link">
+                        @crypto_king 的推文
+                    </a>
+                </div>
+                <div class="task-actions">
+                    <button class="action-btn done">👍</button>
+                    <button class="action-btn done">🔄</button>
+                    <button class="action-btn done">💬</button>
+                </div>
+            </div>
+            
+            <div class="task-item">
+                <div class="task-user">
+                    <img src="https://picsum.photos/101" class="task-avatar">
+                    <a href="https://x.com/defi_girl/status/123456788" target="_blank" class="task-link">
+                        @defi_girl 的推文
+                    </a>
+                </div>
+                <div class="task-actions">
+                    <button class="action-btn like" onclick="this.className='action-btn done';this.innerText='👍'">👍</button>
+                    <button class="action-btn done">🔄</button>
+                    <button class="action-btn comment" onclick="this.className='action-btn done';this.innerText='💬'">💬</button>
+                </div>
+            </div>
+            
+            <div class="task-item">
+                <div class="task-user">
+                    <img src="https://picsum.photos/102" class="task-avatar">
+                    <a href="https://x.com/whale_watcher/status/123456787" target="_blank" class="task-link">
+                        @whale_watcher 的推文
+                    </a>
+                </div>
+                <div class="task-actions">
+                    <button class="action-btn done">👍</button>
+                    <button class="action-btn done">🔄</button>
+                    <button class="action-btn comment" onclick="this.className='action-btn done';this.innerText='💬'">💬</button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Leaderboard -->
+        <div class="leaderboard">
+            <h3>贡献排行榜</h3>
+            
+            <div class="rank-item">
+                <span class="rank-num">1</span>
+                <img src="https://picsum.photos/100" class="rank-avatar">
+                <span class="rank-name">@crypto_king</span>
+                <div class="rank-stats">提交: 12 | 互动: 45</div>
+            </div>
+            
+            <div class="rank-item">
+                <span class="rank-num">2</span>
+                <img src="https://picsum.photos/101" class="rank-avatar">
+                <span class="rank-name">@defi_girl</span>
+                <div class="rank-stats">提交: 8 | 互动: 32</div>
+            </div>
+            
+            <div class="rank-item">
+                <span class="rank-num">3</span>
+                <img src="https://picsum.photos/103" class="rank-avatar">
+                <span class="rank-name">@nft_collector</span>
+                <div class="rank-stats">提交: 5 | 互动: 28</div>
+            </div>
+            
+            <div class="rank-item" style="border: 1px solid #ff3366;">
+                <span class="rank-num">4</span>
+                <img src="https://picsum.photos/102" class="rank-avatar">
+                <span class="rank-name rank-low">@whale_watcher</span>
+                <div class="rank-stats" style="color: #ff3366;">提交: 15 | 互动: 12 ⚠️</div>
+            </div>
+            
+            <div class="rank-item" style="border: 1px solid #ff3366;">
+                <span class="rank-num">5</span>
+                <img src="https://picsum.photos/104" class="rank-avatar">
+                <span class="rank-name rank-low">@memecoin_lad</span>
+                <div class="rank-stats" style="color: #ff3366;">提交: 20 | 互动: 5 ⚠️</div>
+            </div>
+        </div>
+        
+        <div class="footer">
+            24hclub Task Tracker - Demo Mode
+        </div>
+    </div>
+</body>
+</html>
