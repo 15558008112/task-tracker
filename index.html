@@ -83,7 +83,8 @@
                 </div>
                 <h1 class="text-xl font-semibold text-white">24h 交互矩阵</h1>
             </div>
-            <div id="userInfo" class="text-sm text-white">
+            <div id="userInfo">
+                <button onclick="login()" class="px-4 py-2 bg-[#1DA1F2] hover:bg-[#1a91da] rounded-lg text-sm font-medium text-white transition-all">Twitter 登录</button>
             </div>
         </header>
         
@@ -192,8 +193,17 @@
         }
         
         async function login() {
-            // Already auto-logged in
-            showLoggedIn();
+            // Call login API
+            try {
+                const res = await fetch('/api/login', { method: 'POST' });
+                const data = await res.json();
+                if (data.user) {
+                    currentUser = data.user;
+                    showLoggedIn();
+                }
+            } catch (e) {
+                console.error(e);
+            }
         }
         
         async function logout() {
