@@ -34,20 +34,23 @@
             background: #16161a; padding: 20px; border-radius: 12px; text-align: center;
         }
         .stat-num { font-size: 2em; font-weight: 700; color: #00f0ff; }
+        .stat-num.warning { color: #ff3366; }
         .stat-label { color: #888; font-size: 0.9em; margin-top: 5px; }
         
         .submit-section {
             background: #16161a; padding: 20px; border-radius: 12px; margin: 20px 0;
         }
         .submit-section h3 { margin-bottom: 15px; }
+        .submit-row { display: flex; gap: 10px; }
         .submit-input {
-            width: 100%; padding: 15px; background: #0a0a0f; border: 1px solid #333;
+            flex: 1; padding: 15px; background: #0a0a0f; border: 1px solid #00f0ff;
             border-radius: 8px; color: #fff; font-size: 1em;
         }
         .submit-btn {
-            width: 100%; margin-top: 10px; padding: 15px; background: linear-gradient(90deg, #00f0ff, #00ff88);
-            border: none; border-radius: 8px; color: #000; font-weight: 600; cursor: pointer;
+            padding: 15px 30px; background: #00f0ff; border: none; 
+            border-radius: 8px; color: #000; font-weight: 600; cursor: pointer;
         }
+        .submit-btn:disabled { background: #333; color: #666; cursor: not-allowed; }
         
         .task-list { margin: 20px 0; }
         .task-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
@@ -60,14 +63,16 @@
         .task-link {
             color: #00f0ff; text-decoration: none; font-size: 0.85em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
         }
-        .task-actions { display: flex; gap: 8px; flex-shrink: 0; }
+        
+        /* Single button styles */
         .action-btn {
-            padding: 8px 12px; border: none; border-radius: 6px; cursor: pointer; font-size: 0.8em;
+            padding: 10px 20px; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 0.9em; white-space: nowrap;
+            background: linear-gradient(90deg, #00f0ff, #00ff88); color: #000;
         }
-        .action-btn.like { background: #1da1f2; color: #fff; }
-        .action-btn.retweet { background: #00ff88; color: #000; }
-        .action-btn.comment { background: #ff6b6b; color: #fff; }
-        .action-btn.done { background: #333; color: #666; }
+        .action-btn:hover { opacity: 0.9; }
+        .action-btn.done { 
+            background: #1a1a1a; color: #00ff88; border: 1px solid #00ff88;
+        }
         
         .leaderboard { margin-top: 30px; }
         .leaderboard h3 { margin-bottom: 15px; }
@@ -75,13 +80,20 @@
             display: flex; align-items: center; padding: 12px; background: #16161a;
             border-radius: 8px; margin-bottom: 8px;
         }
-        .rank-num { width: 30px; font-weight: 700; color: #888; }
+        .rank-num { width: 40px; font-weight: 700; font-size: 1.2em; }
+        .rank-num.gold { color: #ffd700; }
+        .rank-num.silver { color: #c0c0c0; }
+        .rank-num.bronze { color: #cd7f32; }
+        .rank-icon { font-size: 1.3em; margin-right: 5px; }
         .rank-avatar { width: 30px; height: 30px; border-radius: 50%; margin-right: 10px; }
         .rank-name { flex: 1; }
         .rank-stats { text-align: right; font-size: 0.85em; color: #888; }
+        .rank-stats .submit-icon { margin-right: 8px; }
+        .rank-stats .interact-icon { margin-left: 8px; }
         .rank-low { color: #ff3366; font-weight: 600; }
         
         .warning { color: #ff3366; font-size: 0.9em; margin-top: 10px; }
+        .warning-icon { margin-right: 5px; }
         .footer { text-align: center; padding: 20px; color: #666; font-size: 0.85em; }
     </style>
 </head>
@@ -98,30 +110,34 @@
             <div class="stats">
                 <div class="stat-card">
                     <div class="stat-num" id="linksSubmitted">0</div>
-                    <div class="stat-label">今日提交</div>
+                    <div class="stat-label">📤 今日提交</div>
                 </div>
                 <div class="stat-card">
                     <div class="stat-num" id="interactionsDone">0</div>
-                    <div class="stat-label">已完成互动</div>
+                    <div class="stat-label">💬 已完成互动</div>
                 </div>
                 <div class="stat-card">
                     <div class="stat-num" id="pendingNeeded">5</div>
-                    <div class="stat-label">还需互动</div>
+                    <div class="stat-label">⏳ 还需互动</div>
                 </div>
             </div>
             
             <div class="submit-section">
-                <h3>提交你的链接</h3>
+                <h3>📤 提交你的链接</h3>
                 <div id="submitForm">
-                    <input type="text" id="linkInput" class="submit-input" placeholder="粘贴你的Twitter链接...">
-                    <button class="submit-btn" onclick="submitLink()">提交</button>
+                    <div class="submit-row">
+                        <input type="text" id="linkInput" class="submit-input" placeholder="粘贴你的Twitter链接...">
+                        <button class="submit-btn" onclick="submitLink()">提交</button>
+                    </div>
                 </div>
-                <p class="warning" id="warningMsg" style="display: none;">⚠️ 需要先完成 5 次互动才能提交链接</p>
+                <p class="warning" id="warningMsg" style="display: none;">
+                    <span class="warning-icon">⚠️</span>需要先完成 <span id="pendingNum">5</span> 次互动才能提交链接
+                </p>
             </div>
             
             <div class="task-list">
                 <div class="task-header">
-                    <h3>今日任务池</h3>
+                    <h3>📋 今日任务池</h3>
                     <span style="color: #888;" id="taskCount">0 个任务</span>
                 </div>
                 <div id="taskList"></div>
@@ -129,7 +145,7 @@
         </div>
         
         <div class="leaderboard">
-            <h3>贡献排行榜</h3>
+            <h3>🏆 贡献排行榜</h3>
             <div id="leaderboardList"></div>
         </div>
         
@@ -138,6 +154,7 @@
     
     <script>
         let currentUser = null;
+        let tasks = [];
         
         async function init() {
             try {
@@ -160,7 +177,14 @@
             
             document.getElementById('linksSubmitted').textContent = user.links;
             document.getElementById('interactionsDone').textContent = user.interactions;
-            document.getElementById('pendingNeeded').textContent = Math.max(0, 5 - user.interactions);
+            
+            const pending = Math.max(0, 5 - user.interactions);
+            document.getElementById('pendingNeeded').textContent = pending;
+            document.getElementById('pendingNum').textContent = pending;
+            
+            if (pending > 0) {
+                document.getElementById('pendingNeeded').classList.add('warning');
+            }
             
             if (user.interactions >= 5) {
                 document.getElementById('submitForm').style.display = 'block';
@@ -177,10 +201,15 @@
         async function loadTasks() {
             try {
                 const res = await fetch('/api/tasks');
-                const tasks = await res.json();
+                tasks = await res.json();
                 renderTasks(tasks);
             } catch (e) {
-                renderTasks([]);
+                tasks = [
+                    {id: 1, userId: 1, username: 'crypto_king', avatar: 'https://picsum.photos/100', link: 'https://x.com/crypto_king/status/123456789', liked: true, retweeted: false, commented: true},
+                    {id: 2, userId: 2, username: 'defi_girl', avatar: 'https://picsum.photos/101', link: 'https://x.com/defi_girl/status/123456788', liked: false, retweeted: true, commented: false},
+                    {id: 3, userId: 3, username: 'whale_watcher', avatar: 'https://picsum.photos/102', link: 'https://x.com/whale_watcher/status/123456787', liked: true, retweeted: true, commented: false},
+                ];
+                renderTasks(tasks);
             }
         }
         
@@ -198,55 +227,51 @@
             const list = document.getElementById('taskList');
             document.getElementById('taskCount').textContent = tasks.length + ' 个任务';
             
-            list.innerHTML = tasks.map(task => `
+            list.innerHTML = tasks.map(task => {
+                const isDone = task.liked && task.retweeted && task.commented;
+                return `
                 <div class="task-item">
                     <div class="task-user">
                         <img src="${task.avatar}" class="task-avatar">
                         <a href="${task.link}" target="_blank" class="task-link">@${task.username} 的推文</a>
                     </div>
-                    <div class="task-actions">
-                        <button class="action-btn ${task.liked ? 'done' : 'like'}" onclick="interact(${task.id}, 'like')">${task.liked ? '✓' : '👍'}</button>
-                        <button class="action-btn ${task.retweeted ? 'done' : 'retweet'}" onclick="interact(${task.id}, 'retweet')">${task.retweeted ? '✓' : '🔄'}</button>
-                        <button class="action-btn ${task.commented ? 'done' : 'comment'}" onclick="interact(${task.id}, 'comment')">${task.commented ? '✓' : '💬'}</button>
-                    </div>
+                    <a href="${task.link}" target="_blank" class="action-btn ${isDone ? 'done' : ''}" onclick="markAsDone(event, ${task.id})">
+                        ${isDone ? '✓ 已完成' : '去互动 →'}
+                    </a>
                 </div>
-            `).join('');
+            `}).join('');
         }
         
         function renderLeaderboard(users) {
             const list = document.getElementById('leaderboardList');
+            const medals = ['🥇', '🥈', '🥉'];
+            
             list.innerHTML = users.map((u, i) => `
-                <div class="rank-item" style="${u.interactions < 5 ? 'border: 1px solid #ff3366;' : ''}">
-                    <span class="rank-num">${i + 1}</span>
+                <div class="rank-item">
+                    <span class="rank-num ${i === 0 ? 'gold' : (i === 1 ? 'silver' : (i === 2 ? 'bronze' : ''))}">
+                        ${i < 3 ? medals[i] : (i + 1)}
+                    </span>
                     <img src="${u.avatar}" class="rank-avatar">
                     <span class="rank-name ${u.interactions < 5 ? 'rank-low' : ''}">@${u.username}</span>
                     <div class="rank-stats" style="${u.interactions < 5 ? 'color: #ff3366;' : ''}">
-                        提交: ${u.links} | 互动: ${u.interactions} ${u.interactions < 5 ? '⚠️' : ''}
+                        <span class="submit-icon">📤${u.links}</span>
+                        <span class="interact-icon">💬${u.interactions}</span>
                     </div>
                 </div>
             `).join('');
         }
         
-        async function interact(taskId, action) {
-            try {
-                await fetch('/api/interact', {
-                    method: 'POST',
-                    headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify({taskId, action})
-                });
-            } catch (e) {}
-            
-            // Toggle locally for demo
-            const btn = event.target;
-            if (btn.classList.contains('done')) {
-                btn.classList.remove('done');
-                btn.classList.add(action === 'retweet' ? 'retweet' : (action === 'comment' ? 'comment' : 'like'));
-            } else {
-                const original = btn.textContent;
-                btn.classList.remove('like', 'retweet', 'comment');
-                btn.classList.add('done');
-                btn.textContent = '✓';
-            }
+        function markAsDone(event, taskId) {
+            // Mark as done after user clicks
+            setTimeout(() => {
+                const task = tasks.find(t => t.id === taskId);
+                if (task) {
+                    task.liked = true;
+                    task.retweeted = true;
+                    task.commented = true;
+                    renderTasks(tasks);
+                }
+            }, 2000); // Give user time to interact
         }
         
         function submitLink() {
