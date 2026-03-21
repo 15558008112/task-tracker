@@ -83,8 +83,9 @@
                 </div>
                 <h1 class="text-xl font-semibold text-white">24h 交互矩阵</h1>
             </div>
-            <div id="userInfo">
-                <button onclick="login()" class="px-4 py-2 bg-[#1DA1F2] hover:bg-[#1a91da] rounded-lg text-sm font-medium text-white transition-all">Twitter 登录</button>
+            <div id="userInfo" class="flex items-center gap-2">
+                <input type="text" id="twitterInput" placeholder="输入Twitter用户名" class="px-3 py-1.5 bg-white/5 border border-white/10 rounded-lg text-sm text-white placeholder-slate-500">
+                <button onclick="loginWithUsername()" class="px-3 py-1.5 bg-[#1DA1F2] hover:bg-[#1a91da] rounded-lg text-sm font-medium text-white transition-all">绑定</button>
             </div>
         </header>
         
@@ -215,6 +216,23 @@
             // Direct redirect to Twitter OAuth
             const twitterAuthUrl = 'https://twitter.com/i/oauth2/authorize?response_type=code&client_id=T05CT3pQT0hOcE1vQlJrVHN0Y3E6MTpjaQ&redirect_uri=https://task-tracker-kohl-one-14.vercel.app/callback&scope=tweet.read%20users.read&state=xyz&code_challenge=challenge&code_challenge_method=plain';
             window.location.href = twitterAuthUrl;
+        }
+        
+        function loginWithUsername() {
+            const username = document.getElementById('twitterInput').value.trim();
+            if (!username) {
+                alert('请输入Twitter用户名');
+                return;
+            }
+            currentUser = {
+                username: username,
+                name: username,
+                avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=' + username,
+                links: 0,
+                interactions: 0
+            };
+            localStorage.setItem('twitter_user', JSON.stringify(currentUser));
+            showLoggedIn();
         }
         
         async function logout() {
