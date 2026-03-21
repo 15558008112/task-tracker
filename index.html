@@ -180,28 +180,7 @@
         setInterval(updateCountdown, 1000);
         updateCountdown();
         
-        async function init() {
-            // Check URL params for login success
-            const urlParams = new URLSearchParams(window.location.search);
-            if (urlParams.get('logged_in') === 'true') {
-                // After Twitter auth, try to get user
-                try {
-                    const res = await fetch('/api/user');
-                    const data = await res.json();
-                    if (data.username && data.username !== 'guest') {
-                        currentUser = data;
-                    }
-                } catch (e) {}
-            }
-            
-            // Check login status
-            try {
-                const res = await fetch('/api/status');
-                const data = await res.json();
-                if (data.logged_in && data.user) {
-                    currentUser = data.user;
-                }
-            } catch (e) {}
+        function init() {
             showLoggedIn();
         }
         
