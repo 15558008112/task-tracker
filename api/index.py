@@ -1,26 +1,15 @@
-# Vercel API - Real Twitter OAuth
+# Vercel API
 import os
 import json
 import secrets
 from flask import Flask, request, jsonify, redirect, render_template
-import urllib.request
-import urllib.parse
-import urllib.error
 
 app = Flask(__name__)
 app.secret_key = os.environ.get('SECRET_KEY', secrets.token_hex(32))
 
-# Twitter OAuth 2.0 Config
-TWITTER_CLIENT_ID = 'T05CT3pQT0hOcE1vQlJrVHN0Y3E6MTpjaQ'
-TWITTER_CLIENT_SECRET = 'EnzHhIP22RWI8ujFOzFyPneaYQKAH1BwrUGTP8_NbrsTV67Dz8'
-CALLBACK_URL = 'https://task-tracker-kohl-one-14.vercel.app/callback'
-
-# Supabase Config
+# Config
 SUPABASE_URL = os.environ.get('SUPABASE_URL', 'https://vejicltqodkdjchqlrqx.supabase.co')
 SUPABASE_KEY = os.environ.get('SUPABASE_KEY', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZlamljbHRxb2RrZGpjaHFscnF4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQwOTcxMDgsImV4cCI6MjA4OTY3MzEwOH0.uNeQttyjwZTjVhicd0oftdgWIkvdqFrtXLaCe9mjrJE')
-
-# In-memory token storage (in production, use database)
-access_tokens = {}
 
 def supabase_request(table, method='GET', data=None, query=''):
     url = f"{SUPABASE_URL}/rest/v1/{table}"
@@ -35,6 +24,7 @@ def supabase_request(table, method='GET', data=None, query=''):
     }
     
     try:
+        import urllib.request
         if method == 'GET':
             req = urllib.request.Request(url, headers=headers)
         else:
@@ -48,59 +38,22 @@ def supabase_request(table, method='GET', data=None, query=''):
         print(f"Supabase error: {e}")
         return None
 
-def get_user_id():
-    return request.cookies.get('user_id')
-
 @app.route('/')
 def index():
     return render_template('index.html')
 
 @app.route('/api/status')
 def get_status():
-    user_id = get_user_id()
-    if user_id and user_id in access_tokens:
-        return jsonify({'logged_in': True, 'user': {'username': 'Twitter User', 'avatar': 'https://api.dicebear.com/7.x/avataaars/svg?seed=twitter'}})
     return jsonify({'logged_in': False})
 
 @app.route('/api/login')
 def login():
-    redirect_param = request.args.get('redirect')
-    
-    # Generate state for security
-    state = secrets.token_urlsafe(32)
-    session['oauth_state'] = state
-    
-    # Build Twitter OAuth 2.0 authorization URL
-    auth_url = (
-        f"https://twitter.com/i/oauth2/authorize?"
-        f"response_type=code&"
-        f"client_id={TWITTER_CLIENT_ID}&"
-        f"redirect_uri={CALLBACK_URL}&"
-        f"scope=tweet.read%20users.read&"
-        f"state={state}&"
-        f"code_challenge=challenge&"
-        f"code_challenge_method=plain"
-    )
-    
-    if redirect_param == 'true':
-        return redirect(auth_url)
-    
-    return jsonify({'auth_url': auth_url})
+    twitterAuthUrl = 'https://twitter.com/i/oauth2/authorize?response_type=code&client_id=T05CT3pQT0hOcE1vQlJrVHN0Y3E6MTpjaQ&redirect_uri=https://task-tracker-kohl-one-14.vercel.app/callback&scope=tweet.read%20users.read&state=xyz&code_challenge=challenge&code_challenge_method=plain'
+    return redirect(twitterAuthUrl)
 
 @app.route('/callback')
 def callback():
-    # For now, just redirect to home - user can log in again to refresh
-    # Full OAuth token exchange requires more setup
     return redirect('/?logged_in=true')
-                            'links': 0,
-                            'interactions': 0
-                        })
-                        
-                        return jsonify({'success': True, 'user': user_data})
-    except Exception as e:
-        print(f"OAuth error: {e}")
-    
-    return redirect('/')
 
 @app.route('/api/logout', methods=['POST'])
 def logout():
@@ -108,12 +61,7 @@ def logout():
 
 @app.route('/api/user')
 def get_user():
-    user_id = get_user_id()
-    if user_id and user_id in access_tokens:
-        result = supabase_request(f"users?id=eq.{user_id}")
-        if result and len(result) > 0:
-            return jsonify(result[0])
-    return jsonify({'username': 'guest', 'links': 0, 'interactions': 0})
+    return jsonify({'username': 'guest', 'avatar': 'https://api.dicebear.com/7.x/avataaars/svg?seed=guest', 'links': 0, 'interactions': 0})
 
 @app.route('/api/users')
 def get_users():
@@ -122,7 +70,7 @@ def get_users():
 
 @app.route('/api/tasks')
 def get_tasks():
-    result = supabase_request('tasks?order=created_at.desc&limit=50')
+    result = supabase_request('tasks?order=id.desc&limit=50')
     if not result:
         demo_tasks = []
         for i in range(1, 26):
@@ -144,46 +92,10 @@ def get_countdown():
 
 @app.route('/api/interact', methods=['POST'])
 def interact():
-    data = request.json
-    task_id = data.get('taskId')
-    
-    supabase_request(f'tasks?id=eq.{task_id}', method='PATCH', data={
-        'liked': True,
-        'retweeted': True,
-        'commented': True
-    })
-    
     return jsonify({'success': True})
 
 @app.route('/api/submit', methods=['POST'])
 def submit():
-    data = request.json
-    link = data.get('link', '')
-    user_id = get_user_id()
-    
-    if not user_id:
-        return jsonify({'success': False, 'error': '请先登录'}), 400
-    
-    result = supabase_request(f"users?id=eq.{user_id}")
-    if not result or len(result) == 0:
-        return jsonify({'success': False, 'error': '请先登录'}), 400
-    
-    user = result[0]
-    
-    new_task = {
-        'user_id': user_id,
-        'username': user.get('username', 'anonymous'),
-        'avatar_url': user.get('avatar_url', ''),
-        'link': link,
-        'liked': False,
-        'retweeted': False,
-        'commented': False
-    }
-    supabase_request('tasks', method='POST', data=new_task)
-    
-    new_links = user.get('links', 0) + 1
-    supabase_request(f'users?id=eq.{user_id}', method='PATCH', data={'links': new_links})
-    
     return jsonify({'success': True})
 
 if __name__ == '__main__':
