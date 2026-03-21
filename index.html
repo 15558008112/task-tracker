@@ -181,17 +181,33 @@
         updateCountdown();
         
         function init() {
-            // Check localStorage first
-            const saved = localStorage.getItem('twitter_user');
-            if (saved) {
-                currentUser = JSON.parse(saved);
+            // Check URL params for Twitter user
+            const params = new URLSearchParams(window.location.search);
+            const twitterUser = params.get('twitter_user');
+            const twitterName = params.get('twitter_name');
+            const twitterAvatar = params.get('twitter_avatar');
+            
+            if (twitterUser) {
+                currentUser = {
+                    username: twitterUser,
+                    name: twitterName || twitterUser,
+                    avatar: twitterAvatar || 'https://api.dicebear.com/7.x/avataaars/svg?seed=' + twitterUser,
+                    links: 0,
+                    interactions: 0
+                };
+                // Save to localStorage
+                localStorage.setItem('twitter_user', JSON.stringify(currentUser));
+                // Clean URL
+                window.history.replaceState({}, document.title, '/');
+            } else {
+                // Check localStorage
+                const saved = localStorage.getItem('twitter_user');
+                if (saved) {
+                    try {
+                        currentUser = JSON.parse(saved);
+                    } catch(e) {}
+                }
             }
-            showLoggedIn();
-        }
-        
-        function saveUser(user) {
-            localStorage.setItem('twitter_user', JSON.stringify(user));
-            currentUser = user;
             showLoggedIn();
         }
         
