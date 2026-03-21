@@ -3,183 +3,581 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>24hclub 打卡台</title>
+    <title>24h 交互矩阵</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script>
+        // Supabase 配置
+        const SUPABASE_URL = 'https://vejicltqodkdjchqlrqx.supabase.co';
+        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZlamljbHRxb2RkZGpjaHFscnF4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQwOTcxMDgsImV4cCI6MjA4OTY3MzEwOH0.uNeQttyjwZTjVhicd0oftdgWIkvdqFrtXLaCe9mjrJE';
+        
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+        
+        // 🚀 触发 Twitter 登录
+        async function login() {
+            try {
+                const { data, error } = await supabase.auth.signInWithOAuth({
+                    provider: 'twitter',
+                    options: {
+                        redirectTo: 'https://task-tracker-kohl-one-14.vercel.app/'
+                    }
+                });
+                
+                if (error) {
+                    console.error('Login error:', error);
+                    // 备用方案：让用户输入用户名
+                    const username = prompt('OAuth登录失败，请输入你的Twitter用户名（不带@）:');
+                    if (username) {
+                        loginWithUsername(username);
+                    }
+                }
+            } catch (e) {
+                console.error('Exception:', e);
+                const username = prompt('请输入你的Twitter用户名（不带@）:');
+                if (username) {
+                    loginWithUsername(username);
+                }
+            }
+        }
+        
+        // 备用：用户名登录
+        async function loginWithUsername(username) {
+            username = username.trim().replace('@', '');
+            currentUser = {
+                username: username,
+                name: username,
+                avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=' + username,
+                links: 0,
+                interactions: 0
+            };
+            localStorage.setItem('twitter_user', JSON.stringify(currentUser));
+            showLoggedIn();
+        }
+        
+        // 🚀 监听 auth 状态变化
+        supabase.auth.onAuthStateChange((event, session) => {
+            console.log('【SUPABASE】Auth event:', event);
+            console.log('【SUPABASE】Session:', session);
+            
+            if (event === 'SIGNED_IN' && session) {
+                // 从 Supabase session 提取 Twitter 真实信息
+                const user = session.user;
+                const metadata = user.user_metadata;
+                
+                console.log('【SUPABASE】User metadata:', metadata);
+                
+                // 提取头像和昵称
+                let avatar = metadata.avatar_url || '';
+                let username = metadata.preferred_username || metadata.full_name || user.email;
+                
+                // 处理高清头像
+                avatar = avatar.replace('_normal', '');
+                
+                console.log('【SUPABASE】Got user:', { username, avatar });
+                
+                // 更新 currentUser
+                currentUser = {
+                    username: username,
+                    name: username,
+                    avatar: avatar || 'https://api.dicebear.com/7.x/avataaars/svg?seed=' + username,
+                    links: 0,
+                    interactions: 0
+                };
+                
+                localStorage.setItem('twitter_user', JSON.stringify(currentUser));
+                showLoggedIn();
+            }
+        });
+        
+        // 检查当前登录状态
+        async function checkAuth() {
+            const { data: { session } } = await supabase.auth.getSession();
+            if (session) {
+                const user = session.user;
+                const metadata = user.user_metadata;
+                let avatar = (metadata.avatar_url || '').replace('_normal', '');
+                let username = metadata.preferred_username || metadata.full_name || user.email;
+                
+                currentUser = {
+                    username: username,
+                    name: username,
+                    avatar: avatar || 'https://api.dicebear.com/7.x/avataaars/svg?seed=' + username,
+                    links: 0,
+                    interactions: 0
+                };
+                showLoggedIn();
+            }
+        }
+    </script>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { 
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: #0a0a0f; color: #fff; min-height: 100vh;
-        }
-        .container { max-width: 800px; margin: 0 auto; padding: 20px; }
+        * { font-family: 'Outfit', sans-serif; }
         
-        /* Header */
-        .header {
-            display: flex; align-items: center; justify-content: space-between;
-            padding: 20px 0; border-bottom: 1px solid #222;
+        body {
+            background: #0a0a0f;
+            min-height: 100vh;
         }
-        .user-info { display: flex; align-items: center; gap: 12px; }
-        .avatar { width: 40px; height: 40px; border-radius: 50%; }
-        .username { font-weight: 600; }
         
-        /* Stats */
-        .stats {
-            display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; margin: 20px 0;
+        .bg-grid {
+            background-image: 
+                linear-gradient(rgba(255,255,255,0.02) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255,255,255,0.02) 1px, transparent 1px);
+            background-size: 40px 40px;
         }
-        .stat-card {
-            background: #16161a; padding: 20px; border-radius: 12px; text-align: center;
-        }
-        .stat-num { font-size: 2em; font-weight: 700; color: #00f0ff; }
-        .stat-label { color: #888; font-size: 0.9em; margin-top: 5px; }
         
-        /* Submit Section */
-        .submit-section {
-            background: #16161a; padding: 20px; border-radius: 12px; margin: 20px 0;
+        .card {
+            background: linear-gradient(135deg, rgba(255,255,255,0.03) 0%, rgba(255,255,255,0.01) 100%);
+            border: 1px solid rgba(255,255,255,0.06);
+            backdrop-filter: blur(20px);
         }
-        .submit-section h3 { margin-bottom: 15px; }
-        .submit-input {
-            width: 100%; padding: 15px; background: #0a0a0f; border: 1px solid #333;
-            border-radius: 8px; color: #fff; font-size: 1em;
-        }
-        .submit-btn {
-            width: 100%; margin-top: 10px; padding: 15px; background: linear-gradient(90deg, #00f0ff, #00ff88);
-            border: none; border-radius: 8px; color: #000; font-weight: 600; cursor: pointer;
-        }
-        .submit-btn:disabled { background: #333; color: #666; cursor: not-allowed; }
         
-        /* Task List */
-        .task-list { margin: 20px 0; }
-        .task-item {
-            background: #16161a; padding: 15px; border-radius: 12px; margin-bottom: 10px;
-            display: flex; align-items: center; justify-content: space-between;
+        .card:hover {
+            border-color: rgba(99, 102, 241, 0.3);
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.05) 0%, rgba(255,255,255,0.02) 100%);
         }
-        .task-link {
-            color: #00f0ff; text-decoration: none; flex: 1;
-        }
-        .task-actions { display: flex; gap: 8px; }
-        .action-btn {
-            padding: 8px 16px; border: none; border-radius: 6px; cursor: pointer; font-size: 0.85em;
-        }
-        .action-btn.like { background: #1da1f2; color: #fff; }
-        .action-btn.retweet { background: #00ff88; color: #000; }
-        .action-btn.comment { background: #ff6b6b; color: #fff; }
-        .action-btn.done { background: #333; color: #666; cursor: default; }
         
-        /* Leaderboard */
-        .leaderboard { margin-top: 30px; }
-        .leaderboard h3 { margin-bottom: 15px; }
-        .rank-item {
-            display: flex; align-items: center; padding: 12px; background: #16161a;
-            border-radius: 8px; margin-bottom: 8px;
+        .glow {
+            box-shadow: 0 0 40px rgba(99, 102, 241, 0.15);
         }
-        .rank-num { width: 30px; font-weight: 700; color: #888; }
-        .rank-avatar { width: 30px; height: 30px; border-radius: 50%; margin-right: 10px; }
-        .rank-name { flex: 1; }
-        .rank-stats { text-align: right; font-size: 0.85em; color: #888; }
-        .rank-low { color: #ff3366; } /* Red for low contribution */
         
-        /* Warning */
-        .warning { color: #ff3366; font-size: 0.9em; margin-top: 10px; }
+        .text-gradient {
+            background: linear-gradient(135deg, #818cf8 0%, #c084fc 50%, #f472b6 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        .btn-glow:hover {
+            box-shadow: 0 0 20px rgba(99, 102, 241, 0.4);
+        }
+        
+        .pulse-dot {
+            animation: pulse-dot 2s ease-in-out infinite;
+        }
+        
+        @keyframes pulse-dot {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        
+        .fade-in {
+            animation: fadeIn 0.4s ease-out forwards;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        input:focus {
+            outline: none;
+            border-color: #6366f1;
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+        }
     </style>
 </head>
-<body>
-    <div class="container">
-        <!-- Header -->
-        <div class="header">
-            <h1>24hclub 打卡台</h1>
-            <div class="user-info">
-                <img src="{{ current_user.avatar_url }}" class="avatar">
-                <span class="username">@{{ current_user.username }}</span>
+<body class="bg-grid text-slate-300" data-logged-in="{{ logged_in }}">
+    <div class="max-w-2xl mx-auto px-5 py-8">
+        <!-- Logo & Header -->
+        <header class="flex items-center justify-between mb-8">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-500 flex items-center justify-center">
+                    <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+                    </svg>
+                </div>
+                <h1 class="text-xl font-semibold text-white">24h 交互矩阵</h1>
             </div>
-        </div>
+            <div id="userInfo" class="flex items-center gap-2">
+                <input type="text" id="twitterInput" placeholder="输入Twitter用户名" class="px-3 py-1.5 bg-white/5 border border-white/10 rounded-lg text-sm text-white placeholder-slate-500">
+                <button onclick="loginWithUsername()" class="px-3 py-1.5 bg-[#1DA1F2] hover:bg-[#1a91da] rounded-lg text-sm font-medium text-white transition-all">绑定</button>
+            </div>
+        </header>
         
-        <!-- Stats -->
-        <div class="stats">
-            <div class="stat-card">
-                <div class="stat-num">{{ current_user.links_submitted }}</div>
-                <div class="stat-label">今日提交</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-num">{{ current_user.interactions_done }}</div>
-                <div class="stat-label">已完成互动</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-num">{{ pending_needed }}</div>
-                <div class="stat-label">还需互动</div>
-            </div>
-        </div>
-        
-        <!-- Submit Section -->
-        <div class="submit-section">
-            <h3>提交你的链接</h3>
-            {% if pending_needed > 0 %}
-            <p class="warning">⚠️ 需要先完成 {{ pending_needed }} 次互动才能提交链接</p>
-            {% else %}
-            <form method="POST" action="/submit">
-                <input type="text" name="link" class="submit-input" placeholder="粘贴你的Twitter链接...">
-                <button type="submit" class="submit-btn">提交</button>
-            </form>
-            {% endif %}
-        </div>
-        
-        <!-- Task List -->
-        <div class="task-list">
-            <h3>今日任务池</h3>
-            {% for task in tasks %}
-            <div class="task-item">
-                <a href="{{ task.twitter_link }}" target="_blank" class="task-link">
-                    {{ task.twitter_link[:50] }}...
-                </a>
-                <div class="task-actions">
-                    {% if task.liked %}
-                    <button class="action-btn done">👍</button>
-                    {% else %}
-                    <button class="action-btn like" onclick="interact({{ task.id }}, 'like')">👍 赞</button>
-                    {% endif %}
-                    
-                    {% if task.retweeted %}
-                    <button class="action-btn done">🔄</button>
-                    {% else %}
-                    <button class="action-btn retweet" onclick="interact({{ task.id }}, 'retweet')">🔄 转</button>
-                    {% endif %}
-                    
-                    {% if task.commented %}
-                    <button class="action-btn done">💬</button>
-                    {% else %}
-                    <button class="action-btn comment" onclick="interact({{ task.id }}, 'comment')">💬 评</button>
-                    {% endif %}
+        <!-- Countdown -->
+        <div class="card rounded-2xl p-5 mb-6">
+            <div class="flex items-center justify-between">
+                <div>
+                    <div class="text-xs text-slate-500 uppercase tracking-wider mb-1">距离重置</div>
+                    <div class="text-4xl font-light text-white" id="timer">00:00:00</div>
+                </div>
+                <div class="w-12 h-12 rounded-full bg-indigo-500/20 flex items-center justify-center">
+                    <svg class="w-6 h-6 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                    </svg>
                 </div>
             </div>
-            {% endfor %}
+        </div>
+        
+        <div id="mainContent" class="hidden">
+            <!-- Progress -->
+            <div class="card rounded-2xl p-5 mb-6">
+                <div class="flex items-center justify-between mb-3">
+                    <span class="text-sm text-slate-400">解锁进度</span>
+                    <span class="text-sm font-medium text-white" id="progressText">0/3</span>
+                </div>
+                <div class="h-1.5 bg-white/5 rounded-full overflow-hidden">
+                    <div id="progressBar" class="h-full bg-gradient-to-r from-indigo-500 to-purple-500 rounded-full transition-all duration-500" style="width: 0%"></div>
+                </div>
+                <p class="text-xs text-slate-500 mt-3" id="progressHint">完成 3 次互动解锁提交功能</p>
+            </div>
+            
+            <!-- Stats -->
+            <div class="grid grid-cols-3 gap-3 mb-6">
+                <div class="card rounded-xl p-4 text-center">
+                    <div class="text-2xl font-semibold text-white" id="linksSubmitted">0</div>
+                    <div class="text-xs text-slate-500 mt-1">推文总数</div>
+                </div>
+                <div class="card rounded-xl p-4 text-center">
+                    <div class="text-2xl font-semibold text-white" id="interactionsDone">0</div>
+                    <div class="text-xs text-slate-500 mt-1">已完成互动</div>
+                </div>
+                <div class="card rounded-xl p-4 text-center">
+                    <div class="text-2xl font-semibold text-purple-400" id="pendingNeeded">3</div>
+                    <div class="text-xs text-slate-500 mt-1">还需互动</div>
+                </div>
+            </div>
+            
+            <!-- Submit -->
+            <div class="card rounded-2xl p-5 mb-6">
+                <h3 class="text-sm font-medium text-slate-400 mb-3">提交你的链接</h3>
+                <div class="flex gap-2" id="submitForm">
+                    <input type="text" id="linkInput" class="flex-1 px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white text-sm placeholder-slate-500" placeholder="先完成互动任务来解锁..." disabled>
+                    <button id="submitBtn" onclick="submitLink()" class="px-5 py-3 bg-white/5 border border-white/10 rounded-xl text-slate-400 text-sm font-medium cursor-not-allowed" disabled>提交</button>
+                </div>
+                <p id="unlockMessage" class="hidden text-center text-sm text-indigo-400 mt-3">✓ 已解锁提交功能</p>
+            </div>
+            
+            <!-- Tasks -->
+            <div class="mb-6">
+                <h3 class="text-sm font-medium text-slate-400 mb-3">今日任务池</h3>
+                <div id="taskList" class="space-y-2"></div>
+                <div id="pagination" class="flex justify-center gap-1 mt-4"></div>
+            </div>
         </div>
         
         <!-- Leaderboard -->
-        <div class="leaderboard">
-            <h3>贡献排行榜</h3>
-            {% for user in leaderboard %}
-            <div class="rank-item">
-                <span class="rank-num">#{{ loop.index }}</span>
-                <img src="{{ user.avatar_url }}" class="rank-avatar">
-                <span class="rank-name {% if user.interactions_done < 5 %}rank-low{% endif %}">
-                    @{{ user.username }}
-                </span>
-                <div class="rank-stats">
-                    提交: {{ user.links_submitted }} | 互动: {{ user.interactions_done }}
-                </div>
-            </div>
-            {% endfor %}
+        <div>
+            <h3 class="text-sm font-medium text-slate-400 mb-3">贡献榜</h3>
+            <div id="leaderboardList" class="space-y-2"></div>
         </div>
+        
+        <footer class="text-center py-8 text-slate-600 text-xs">
+            24h 交互矩阵
+        </footer>
     </div>
     
     <script>
-        async function interact(taskId, action) {
-            const res = await fetch(`/interact/${taskId}/${action}`, { method: 'POST' });
-            const data = await res.json();
-            if (data.success) {
-                location.reload();
+        let currentUser = { username: 'guest', avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=guest', links: 0, interactions: 0 };
+        let allTasks = [];
+        let currentPage = 1;
+        const TASKS_PER_PAGE = 20;
+        
+        function updateCountdown() {
+            const now = new Date();
+            const midnight = new Date(now);
+            midnight.setHours(24, 0, 0, 0);
+            const seconds = Math.floor((midnight - now) / 1000);
+            const h = Math.floor(seconds / 3600);
+            const m = Math.floor((seconds % 3600) / 60);
+            const s = seconds % 60;
+            document.getElementById('timer').textContent = String(h).padStart(2,'0') + ':' + String(m).padStart(2,'0') + ':' + String(s).padStart(2,'0');
+        }
+        setInterval(updateCountdown, 1000);
+        updateCountdown();
+        
+        function init() {
+            // 💥 诊断日志
+            console.log("【MATRIX DIAGNOSTIC】Starting init...");
+            
+            // Check URL params for Twitter user
+            const params = new URLSearchParams(window.location.search);
+            const twitterUser = params.get('twitter_user');
+            const twitterName = params.get('twitter_name');
+            const twitterAvatar = params.get('twitter_avatar');
+            
+            console.log("【MATRIX DIAGNOSTIC】URL params:", { twitterUser, twitterName, twitterAvatar });
+            
+            if (twitterUser) {
+                // 处理高清头像
+                let avatarUrl = twitterAvatar || 'https://api.dicebear.com/7.x/avataaars/svg?seed=' + twitterUser;
+                // 去掉 _normal 后缀
+                avatarUrl = avatarUrl.replace('_normal', '');
+                
+                currentUser = {
+                    username: twitterUser,
+                    name: twitterName || twitterUser,
+                    avatar: avatarUrl,
+                    links: 0,
+                    interactions: 0
+                };
+                
+                console.log("【MATRIX DIAGNOSTIC】Setting user from Twitter:", currentUser);
+                
+                // Save to localStorage
+                localStorage.setItem('twitter_user', JSON.stringify(currentUser));
+                // Clean URL
+                window.history.replaceState({}, document.title, '/');
             } else {
-                alert(data.error);
+                // Check localStorage
+                const saved = localStorage.getItem('twitter_user');
+                if (saved) {
+                    try {
+                        currentUser = JSON.parse(saved);
+                        console.log("【MATRIX DIAGNOSTIC】Loaded from localStorage:", currentUser);
+                    } catch(e) {
+                        console.log("【MATRIX DIAGNOSTIC】localStorage parse error:", e);
+                    }
+                }
+            }
+            
+            console.log("【MATRIX DIAGNOSTIC】Final currentUser:", currentUser);
+            showLoggedIn();
+        }
+        
+        function login() {
+            // 使用 OAuth 1.0a 登录
+            window.location.href = '/auth/twitter';
+        }
+        
+        async function loginWithUsername(username) {
+            username = username.trim().replace('@', '');
+            if (!username) return;
+            
+            console.log("【MATRIX DIAGNOSTIC】Fetching avatar for:", username);
+            
+            // 尝试获取真实头像
+            try {
+                // 方法1: 用 Twitter API
+                const response = await fetch('https://api.twitter.com/2/users/by/username/' + username + '?user.fields=profile_image_url', {
+                    headers: {
+                        'Authorization': 'Bearer AAAAAAAAAAAAAAAAAAAAAI4%2FjkEAAAAA0t2L2XaNXLQa1uqy1W6Z8WkZ7k%3DqQ3m0gBzY0yJ0vG2pGxY9Z1N2XaNXLQa1uqy1W6Z8WkZ7k'
+                    }
+                });
+                if (response.ok) {
+                    const data = await response.json();
+                    console.log("【MATRIX DIAGNOSTIC】Twitter API response:", data);
+                    if (data.data) {
+                        currentUser = {
+                            username: data.data.username,
+                            name: data.data.name || data.data.username,
+                            avatar: data.data.profile_image_url.replace('_normal', ''),
+                            links: 0,
+                            interactions: 0
+                        };
+                        console.log("【MATRIX DIAGNOSTIC】Got real user:", currentUser);
+                        localStorage.setItem('twitter_user', JSON.stringify(currentUser));
+                        showLoggedIn();
+                        return;
+                    }
+                }
+            } catch (e) {
+                console.log("【MATRIX DIAGNOSTIC】API error:", e);
+            }
+            
+            // 回退：用 nitter 或其他
+            try {
+                const nitterResponse = await fetch('https://nitter.net/' + username);
+                if (nitterResponse.ok) {
+                    const html = await nitterResponse.text();
+                    const avatarMatch = html.match(/"profile-image" src="([^"]+)"/);
+                    if (avatarMatch) {
+                        let avatar = avatarMatch[1].replace('_normal', '');
+                        currentUser = {
+                            username: username,
+                            name: username,
+                            avatar: avatar,
+                            links: 0,
+                            interactions: 0
+                        };
+                        localStorage.setItem('twitter_user', JSON.stringify(currentUser));
+                        showLoggedIn();
+                        return;
+                    }
+                }
+            } catch (e2) {}
+            
+            // 最终回退：dicebear
+            currentUser = {
+                username: username,
+                name: username,
+                avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=' + username,
+                links: 0,
+                interactions: 0
+            };
+            localStorage.setItem('twitter_user', JSON.stringify(currentUser));
+            showLoggedIn();
+        }
+        
+        async function loginWithUsername() {
+            const username = document.getElementById('twitterInput').value.trim().replace('@', '');
+            if (!username) {
+                alert('请输入Twitter用户名');
+                return;
+            }
+            
+            // Try to get real avatar from Twitter
+            try {
+                // Use vxtwitter to get profile image
+                const response = await fetch('https://api.vxtwitter.com/user/' + username);
+                if (response.ok) {
+                    const data = await response.json();
+                    currentUser = {
+                        username: data.user?.screen_name || username,
+                        name: data.user?.name || username,
+                        avatar: data.user?.profile_image_url?.replace('_normal', '') || 'https://api.dicebear.com/7.x/avataaars/svg?seed=' + username,
+                        links: 0,
+                        interactions: 0
+                    };
+                } else {
+                    throw new Error('not found');
+                }
+            } catch (e) {
+                // Fallback to dicebear
+                currentUser = {
+                    username: username,
+                    name: username,
+                    avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=' + username,
+                    links: 0,
+                    interactions: 0
+                };
+            }
+            
+            localStorage.setItem('twitter_user', JSON.stringify(currentUser));
+            showLoggedIn();
+        }
+        
+        async function logout() {
+            try {
+                await fetch('/api/logout', { method: 'POST' });
+                currentUser = null;
+                document.getElementById('userInfo').innerHTML = '<button onclick="login()" class="px-4 py-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg text-sm font-medium text-white transition-all">Twitter 登录</button>';
+                document.getElementById('mainContent').classList.add('hidden');
+            } catch (e) {
+                console.error(e);
             }
         }
+        
+        let userProgress = { interactions_done: 0, required: 3, is_unlocked: false };
+        
+        function showLoggedIn() {
+            document.getElementById('userInfo').innerHTML = '<div class="flex items-center gap-2"><img src="' + currentUser.avatar + '" class="w-8 h-8 rounded-full"><span class="text-white text-sm">@' + currentUser.username + '</span><button onclick="logout()" class="text-xs text-slate-500 hover:text-white">退出</button></div>';
+            document.getElementById('mainContent').classList.remove('hidden');
+            document.getElementById('linksSubmitted').textContent = currentUser.links;
+            document.getElementById('interactionsDone').textContent = currentUser.interactions;
+            loadTasks();
+            loadLeaderboard();
+        }
+        
+        async function loadTasks() {
+            try {
+                const res = await fetch('/api/tasks');
+                allTasks = await res.json();
+            } catch (e) {
+                allTasks = [];
+                for (let i = 1; i <= 50; i++) {
+                    allTasks.push({id: i, username: 'user_' + i, avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=' + i, link: '#', liked: false, retweeted: false, commented: false});
+                }
+            }
+            currentPage = 1;
+            renderTasks();
+            renderPagination();
+        }
+        
+        function renderTasks() {
+            const start = (currentPage - 1) * TASKS_PER_PAGE;
+            const tasks = allTasks.slice(start, start + TASKS_PER_PAGE);
+            const list = document.getElementById('taskList');
+            document.getElementById('taskCount');
+            list.innerHTML = tasks.map(task => {
+                const isDone = task.liked && task.retweeted && task.commented;
+                return '<div class="card rounded-xl p-3 flex items-center justify-between fade-in"><div class="flex items-center gap-3"><img src="' + task.avatar + '" class="w-8 h-8 rounded-full"><a href="' + task.link + '" target="_blank" class="text-sm text-white hover:text-indigo-400">@' + task.username + '</a></div><a href="' + task.link + '" target="_blank" onclick="setTimeout(() => markAsDone(' + task.id + '), 1500)" class="px-4 py-1.5 rounded-lg text-xs font-medium ' + (isDone ? 'bg-white/5 text-slate-500' : 'bg-indigo-500/20 text-indigo-400 border border-indigo-500/30') + '">' + (isDone ? '✓ 已完成' : '去互动') + '</a></div>';
+            }).join('');
+        }
+        
+        function renderPagination() {
+            const total = Math.ceil(allTasks.length / TASKS_PER_PAGE);
+            const p = document.getElementById('pagination');
+            if (total <= 1) { p.innerHTML = ''; return; }
+            let html = '';
+            
+            // 上一页
+            html += '<button onclick="goToPage(' + (currentPage - 1) + ')" ' + (currentPage === 1 ? 'disabled' : '') + ' class="w-8 h-8 rounded-lg text-xs ' + (currentPage === 1 ? 'opacity-30 cursor-not-allowed' : 'bg-white/5 text-slate-400 hover:bg-white/10') + '">‹</button>';
+            
+            for (let i = 1; i <= total; i++) {
+                html += '<button onclick="goToPage(' + i + ')" class="w-8 h-8 rounded-lg text-xs ' + (i === currentPage ? 'bg-indigo-500 text-white' : 'bg-white/5 text-slate-400 hover:bg-white/10') + '">' + i + '</button>';
+            }
+            
+            // 下一页
+            html += '<button onclick="goToPage(' + (currentPage + 1) + ')" ' + (currentPage === total ? 'disabled' : '') + ' class="w-8 h-8 rounded-lg text-xs ' + (currentPage === total ? 'opacity-30 cursor-not-allowed' : 'bg-white/5 text-slate-400 hover:bg-white/10') + '">›</button>';
+            
+            p.innerHTML = html;
+        }
+        
+        function goToPage(page) { 
+            const total = Math.ceil(allTasks.length / TASKS_PER_PAGE);
+            if (page < 1 || page > total) return;
+            currentPage = page; 
+            renderTasks(); 
+            renderPagination(); 
+        }
+        
+        async function loadLeaderboard() {
+            try {
+                const res = await fetch('/api/users');
+                const users = await res.json();
+                renderLeaderboard(users);
+            } catch (e) { renderLeaderboard([]); }
+        }
+        
+        function renderLeaderboard(users) {
+            const medals = ['🥇', '🥈', '🥉'];
+            document.getElementById('leaderboardList').innerHTML = users.map((u, i) => 
+                '<div class="card rounded-lg p-3 flex items-center"><span class="w-6 ' + (i < 3 ? 'text-yellow-400' : 'text-slate-500') + '">' + (i < 3 ? medals[i] : i+1) + '</span><img src="' + u.avatar + '" class="w-6 h-6 rounded-full mx-3"><span class="flex-1 text-sm text-white">@' + u.username + '</span><span class="text-xs text-slate-500">' + u.interactions + ' 互动</span></div>'
+            ).join('');
+        }
+        
+        function markAsDone(taskId) {
+            const task = allTasks.find(t => t.id === taskId);
+            if (task) {
+                task.liked = task.retweeted = task.commented = true;
+                renderTasks();
+                userProgress.interactions_done++;
+                currentUser.interactions = (currentUser.interactions || 0) + 1;
+                document.getElementById('interactionsDone').textContent = currentUser.interactions;
+                document.getElementById('pendingNeeded').textContent = Math.max(0, userProgress.required - userProgress.interactions_done);
+                const percent = Math.min(100, (userProgress.interactions_done / userProgress.required) * 100);
+                document.getElementById('progressBar').style.width = percent + '%';
+                document.getElementById('progressText').textContent = userProgress.interactions_done + '/' + userProgress.required;
+                
+                if (userProgress.interactions_done >= userProgress.required) {
+                    userProgress.is_unlocked = true;
+                    document.getElementById('linkInput').disabled = false;
+                    document.getElementById('linkInput').placeholder = '粘贴你的Twitter链接...';
+                    document.getElementById('submitBtn').disabled = false;
+                    document.getElementById('submitBtn').classList.remove('bg-white/5', 'text-slate-400', 'cursor-not-allowed');
+                    document.getElementById('submitBtn').classList.add('bg-indigo-500', 'text-white', 'btn-glow');
+                    document.getElementById('unlockMessage').classList.remove('hidden');
+                    document.getElementById('progressHint').textContent = '✓ 已解锁提交功能';
+                }
+            }
+        }
+        
+        function submitLink() {
+            const link = document.getElementById('linkInput').value;
+            if (!link) { alert('请输入链接'); return; }
+            const already = allTasks.some(t => t.username === currentUser.username);
+            if (already) { alert('今日已提交'); return; }
+            
+            allTasks.unshift({id: allTasks.length + 1, username: currentUser.username, avatar: currentUser.avatar, link: link, liked: false, retweeted: false, commented: false});
+            currentUser.links = (currentUser.links || 0) + 1;
+            document.getElementById('linksSubmitted').textContent = currentUser.links;
+            document.getElementById('linkInput').value = '';
+            renderTasks();
+            renderPagination();
+            alert('提交成功！');
+        }
+        
+        init();
     </script>
 </body>
 </html>
