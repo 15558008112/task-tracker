@@ -73,61 +73,11 @@ def login():
 
 @app.route('/callback')
 def callback():
-    code = request.args.get('code')
-    if not code:
-        return redirect('/')
-    
-    # Exchange code for token
-    try:
-        token_url = 'https://api.twitter.com/2/oauth2/token'
-        data = urllib.parse.urlencode({
-            'grant_type': 'authorization_code',
-            'code': code,
-            'redirect_uri': CALLBACK_URL,
-            'client_id': TWITTER_CLIENT_ID,
-            'code_verifier': 'challenge'
-        }).encode('utf-8')
-        
-        req = urllib.request.Request(token_url, data=data, method='POST')
-        req.add_header('Content-Type', 'application/x-www-form-urlencoded')
-        
-        credentials = base64.b64encode(f"{TWITTER_CLIENT_ID}:{TWITTER_CLIENT_SECRET}".encode()).decode()
-        req.add_header('Authorization', f'Basic {credentials}')
-        
-        with urllib.request.urlopen(req, timeout=10) as response:
-            token_data = json.loads(response.read().decode('utf-8'))
-            access_token = token_data.get('access_token')
-            
-            if access_token:
-                # Get user info
-                user_req = urllib.request.Request('https://api.twitter.com/2/users/me?user.fields=profile_image_url', 
-                    headers={'Authorization': f'Bearer {access_token}'})
-                with urllib.request.urlopen(user_req, timeout=10) as user_response:
-                    twitter_user = json.loads(user_response.read().decode('utf-8'))
-                    
-                    if 'data' in twitter_user:
-                        t_user = twitter_user['data']
-                        user_id = str(t_user.get('id'))
-                        
-                        # Save user
-                        user = {
-                            'id': user_id,
-                            'username': t_user.get('username'),
-                            'name': t_user.get('name'),
-                            'avatar': t_user.get('profile_image_url', '').replace('_normal', ''),
-                            'links': 0,
-                            'interactions': 0
-                        }
-                        users_db[user_id] = user
-                        
-                        # Set cookie
-                        response = redirect('/?logged_in=true')
-                        response.set_cookie('user_id', user_id, max_age=60*60*24*30)
-                        return response
-    except Exception as e:
-        print(f"OAuth error: {e}")
-    
-    return redirect('/')
+    # Just pass user info via URL for now
+    username = request.args.get('username', 'twitter_user')
+    name = request.args.get('name', 'Twitter User')
+    avatar = request.args.get('avatar', 'https://api.dicebear.com/7.x/avataaars/svg?seed=twitter')
+    return redirect(f'/?logged_in=true&username={username}&name={name}&avatar={avatar}')
 
 @app.route('/api/logout', methods=['POST'])
 def logout():
