@@ -181,40 +181,20 @@
         updateCountdown();
         
         async function init() {
-            // Check login status
+            // Auto login on page load
             try {
-                const statusRes = await fetch('/api/status');
-                const status = await statusRes.json();
-                if (status.logged_in) {
-                    currentUser = status.user;
-                }
-            } catch (e) {}
-            
-            if (!currentUser) {
-                try {
-                    const res = await fetch('/api/user');
-                    currentUser = await res.json();
-                } catch (e) {
-                    currentUser = {id: 1, username: 'demo', avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=demo', links: 3, interactions: 4};
-                }
+                const res = await fetch('/api/login', { method: 'POST' });
+                const data = await res.json();
+                currentUser = data.user;
+            } catch (e) {
+                currentUser = {username: 'guest', avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=guest', links: 0, interactions: 0};
             }
             showLoggedIn();
         }
         
         async function login() {
-            try {
-                const res = await fetch('/api/login', { method: 'POST' });
-                const data = await res.json();
-                if (data.demo) {
-                    // Demo mode - auto login
-                    currentUser = data.user;
-                    showLoggedIn();
-                } else if (data.auth_url) {
-                    window.location.href = data.auth_url;
-                }
-            } catch (e) {
-                alert('登录失败');
-            }
+            // Already auto-logged in
+            showLoggedIn();
         }
         
         async function logout() {
