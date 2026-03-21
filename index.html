@@ -281,6 +281,23 @@
             const midnight = new Date(now);
             midnight.setHours(24, 0, 0, 0);
             const seconds = Math.floor((midnight - now) / 1000);
+            
+            // 检查是否到了新的一天（重置任务）
+            const lastDate = localStorage.getItem('last_reset_date');
+            const today = now.toDateString();
+            if (lastDate !== today && seconds < 3600) {
+                // 新的一天到了，重置任务数据
+                localStorage.setItem('done_tasks', '[]');
+                localStorage.setItem('user_tasks', '[]');
+                localStorage.setItem('last_reset_date', today);
+                // 重置当前用户的互动进度
+                userProgress.interactions_done = 0;
+                currentUser.interactions = 0;
+                // 刷新页面
+                location.reload();
+                return;
+            }
+            
             const h = Math.floor(seconds / 3600);
             const m = Math.floor((seconds % 3600) / 60);
             const s = seconds % 60;
