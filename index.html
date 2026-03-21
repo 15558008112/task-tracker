@@ -5,107 +5,158 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>24h 交互矩阵</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
+        * { font-family: 'Outfit', sans-serif; }
+        
         body {
-            background: linear-gradient(165deg, #0f172a 0%, #1e293b 50%, #1e293b 100%);
+            background: #0a0a0f;
             min-height: 100vh;
         }
+        
+        .bg-grid {
+            background-image: 
+                linear-gradient(rgba(255,255,255,0.02) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255,255,255,0.02) 1px, transparent 1px);
+            background-size: 40px 40px;
+        }
+        
         .card {
-            background: #1e293b;
-            border: 1px solid #334155;
-            border-radius: 8px;
+            background: linear-gradient(135deg, rgba(255,255,255,0.03) 0%, rgba(255,255,255,0.01) 100%);
+            border: 1px solid rgba(255,255,255,0.06);
+            backdrop-filter: blur(20px);
         }
+        
         .card:hover {
-            border-color: #3b82f6;
+            border-color: rgba(99, 102, 241, 0.3);
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.05) 0%, rgba(255,255,255,0.02) 100%);
         }
-        .btn {
-            transition: all 0.15s ease;
+        
+        .glow {
+            box-shadow: 0 0 40px rgba(99, 102, 241, 0.15);
         }
-        .input {
-            background: #0f172a;
-            border: 1px solid #334155;
-            color: #f1f5f9;
+        
+        .text-gradient {
+            background: linear-gradient(135deg, #818cf8 0%, #c084fc 50%, #f472b6 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
         }
-        .input:focus {
-            border-color: #3b82f6;
+        
+        .btn-glow:hover {
+            box-shadow: 0 0 20px rgba(99, 102, 241, 0.4);
+        }
+        
+        .pulse-dot {
+            animation: pulse-dot 2s ease-in-out infinite;
+        }
+        
+        @keyframes pulse-dot {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        
+        .fade-in {
+            animation: fadeIn 0.4s ease-out forwards;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        input:focus {
             outline: none;
+            border-color: #6366f1;
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
         }
     </style>
 </head>
-<body class="text-slate-200">
-    <div class="max-w-3xl mx-auto px-4 py-6">
-        <!-- 倒计时 -->
-        <div class="bg-slate-800 rounded-lg p-4 mb-4 border-l-4 border-red-500">
-            <div class="text-red-400 text-sm font-medium">距离今日任务重置还有</div>
-            <div class="text-3xl font-mono font-bold text-red-400 mt-1" id="timer">00:00:00</div>
-            <div class="text-slate-400 text-xs mt-1">每天 00:00 重置</div>
-        </div>
-        
-        <!-- Header -->
-        <header class="flex items-center justify-between py-4 border-b border-slate-700">
-            <h1 class="text-xl font-semibold text-white">24h 交互矩阵</h1>
+<body class="bg-grid text-slate-300">
+    <div class="max-w-2xl mx-auto px-5 py-8">
+        <!-- Logo & Header -->
+        <header class="flex items-center justify-between mb-8">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-500 flex items-center justify-center">
+                    <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+                    </svg>
+                </div>
+                <h1 class="text-xl font-semibold text-white">24h 交互矩阵</h1>
+            </div>
             <div id="userInfo">
-                <a href="/auth/twitter" class="px-4 py-2 bg-sky-500 text-white rounded-lg font-medium hover:bg-sky-400">Twitter 登录</a>
+                <a href="/auth/twitter" class="px-4 py-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg text-sm font-medium text-white transition-all">Twitter 登录</a>
             </div>
         </header>
         
+        <!-- Countdown -->
+        <div class="card rounded-2xl p-5 mb-6">
+            <div class="flex items-center justify-between">
+                <div>
+                    <div class="text-xs text-slate-500 uppercase tracking-wider mb-1">距离重置</div>
+                    <div class="text-4xl font-light text-white" id="timer">00:00:00</div>
+                </div>
+                <div class="w-12 h-12 rounded-full bg-indigo-500/20 flex items-center justify-center">
+                    <svg class="w-6 h-6 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                    </svg>
+                </div>
+            </div>
+        </div>
+        
         <div id="mainContent" class="hidden">
-            <!-- 互动进度条 -->
-            <div class="card p-4 my-4">
-                <div class="flex justify-between items-center mb-2">
-                    <span class="text-sm text-slate-400">提交解锁进度</span>
-                    <span class="text-sm text-white font-medium" id="progressText">0/3</span>
+            <!-- Progress -->
+            <div class="card rounded-2xl p-5 mb-6">
+                <div class="flex items-center justify-between mb-3">
+                    <span class="text-sm text-slate-400">解锁进度</span>
+                    <span class="text-sm font-medium text-white" id="progressText">0/3</span>
                 </div>
-                <div class="h-1.5 bg-slate-700 rounded-full overflow-hidden">
-                    <div id="progressBar" class="h-full bg-gradient-to-r from-amber-500 to-red-500" style="width: 0%"></div>
+                <div class="h-1.5 bg-white/5 rounded-full overflow-hidden">
+                    <div id="progressBar" class="h-full bg-gradient-to-r from-indigo-500 to-purple-500 rounded-full transition-all duration-500" style="width: 0%"></div>
                 </div>
-                <p class="text-xs text-slate-400 mt-2" id="progressHint">完成 3 次互动任务即可解锁提交功能</p>
+                <p class="text-xs text-slate-500 mt-3" id="progressHint">完成 3 次互动解锁提交功能</p>
             </div>
             
             <!-- Stats -->
-            <div class="grid grid-cols-3 gap-3 my-4">
-                <div class="card p-4 text-center">
-                    <div class="text-2xl font-bold text-sky-400" id="linksSubmitted">0</div>
-                    <div class="text-xs text-slate-400 mt-1">今日提交</div>
+            <div class="grid grid-cols-3 gap-3 mb-6">
+                <div class="card rounded-xl p-4 text-center">
+                    <div class="text-2xl font-semibold text-white" id="linksSubmitted">0</div>
+                    <div class="text-xs text-slate-500 mt-1">今日提交</div>
                 </div>
-                <div class="card p-4 text-center">
-                    <div class="text-2xl font-bold text-white" id="interactionsDone">0</div>
-                    <div class="text-xs text-slate-400 mt-1">已完成互动</div>
+                <div class="card rounded-xl p-4 text-center">
+                    <div class="text-2xl font-semibold text-white" id="interactionsDone">0</div>
+                    <div class="text-xs text-slate-500 mt-1">已完成互动</div>
                 </div>
-                <div class="card p-4 text-center border-red-500/30" id="pendingCard">
-                    <div class="text-2xl font-bold text-red-400" id="pendingNeeded">3</div>
-                    <div class="text-xs text-slate-400 mt-1">还需互动</div>
+                <div class="card rounded-xl p-4 text-center">
+                    <div class="text-2xl font-semibold text-purple-400" id="pendingNeeded">3</div>
+                    <div class="text-xs text-slate-500 mt-1">还需互动</div>
                 </div>
             </div>
             
             <!-- Submit -->
-            <div class="card p-5 my-5">
-                <h3 class="text-base font-medium text-white mb-3">提交你的链接</h3>
-                <div class="flex gap-3" id="submitForm">
-                    <input type="text" id="linkInput" class="input flex-1 px-4 py-3 rounded-lg text-sm opacity-50 cursor-not-allowed" placeholder="先完成互动任务来解锁提交..." disabled>
-                    <button id="submitBtn" onclick="submitLink()" class="px-5 py-3 bg-slate-700 text-slate-400 rounded-lg font-medium cursor-not-allowed" disabled>提交</button>
+            <div class="card rounded-2xl p-5 mb-6">
+                <h3 class="text-sm font-medium text-slate-400 mb-3">提交你的链接</h3>
+                <div class="flex gap-2" id="submitForm">
+                    <input type="text" id="linkInput" class="flex-1 px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white text-sm placeholder-slate-500" placeholder="先完成互动任务来解锁..." disabled>
+                    <button id="submitBtn" onclick="submitLink()" class="px-5 py-3 bg-white/5 border border-white/10 rounded-xl text-slate-400 text-sm font-medium cursor-not-allowed" disabled>提交</button>
                 </div>
-                <p id="unlockMessage" class="mt-3 text-center text-sky-400 text-sm hidden">已解锁！可以提交链接了</p>
+                <p id="unlockMessage" class="hidden text-center text-sm text-indigo-400 mt-3">✓ 已解锁提交功能</p>
             </div>
             
-            <!-- Task List -->
-            <div class="my-5">
-                <div class="flex justify-between items-center mb-3">
-                    <h3 class="text-base font-medium text-white">今日任务池</h3>
-                    <span class="text-slate-400 text-sm" id="taskCount">0 个任务</span>
-                </div>
+            <!-- Tasks -->
+            <div class="mb-6">
+                <h3 class="text-sm font-medium text-slate-400 mb-3">今日任务池</h3>
                 <div id="taskList" class="space-y-2"></div>
-                <div id="pagination" class="flex justify-center gap-1 mt-6"></div>
+                <div id="pagination" class="flex justify-center gap-1 mt-4"></div>
             </div>
         </div>
         
         <!-- Leaderboard -->
-        <div class="mt-8">
-            <h3 class="text-base font-medium text-white mb-3">贡献排行榜</h3>
+        <div>
+            <h3 class="text-sm font-medium text-slate-400 mb-3">贡献榜</h3>
             <div id="leaderboardList" class="space-y-2"></div>
         </div>
         
-        <footer class="text-center py-6 text-slate-400 text-sm border-t border-slate-700 mt-8">
+        <footer class="text-center py-8 text-slate-600 text-xs">
             24h 交互矩阵
         </footer>
     </div>
@@ -116,19 +167,15 @@
         let currentPage = 1;
         const TASKS_PER_PAGE = 20;
         
-        async function updateCountdown() {
-            try {
-                // 本地时间午夜12点倒计时
-                const now = new Date();
-                const midnight = new Date(now);
-                midnight.setHours(24, 0, 0, 0);
-                const seconds = Math.floor((midnight - now) / 1000);
-                
-                const h = Math.floor(seconds / 3600);
-                const m = Math.floor((seconds % 3600) / 60);
-                const s = seconds % 60;
-                document.getElementById('timer').textContent = String(h).padStart(2,'0') + ':' + String(m).padStart(2,'0') + ':' + String(s).padStart(2,'0');
-            } catch (e) {}
+        function updateCountdown() {
+            const now = new Date();
+            const midnight = new Date(now);
+            midnight.setHours(24, 0, 0, 0);
+            const seconds = Math.floor((midnight - now) / 1000);
+            const h = Math.floor(seconds / 3600);
+            const m = Math.floor((seconds % 3600) / 60);
+            const s = seconds % 60;
+            document.getElementById('timer').textContent = String(h).padStart(2,'0') + ':' + String(m).padStart(2,'0') + ':' + String(s).padStart(2,'0');
         }
         setInterval(updateCountdown, 1000);
         updateCountdown();
@@ -138,7 +185,7 @@
                 const res = await fetch('/api/user');
                 currentUser = await res.json();
             } catch (e) {
-                currentUser = {id: 1, username: 'demo', avatar: 'https://picsum.photos/100', links: 3, interactions: 4};
+                currentUser = {id: 1, username: 'demo', avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=demo', links: 3, interactions: 4};
             }
             showLoggedIn();
         }
@@ -146,7 +193,7 @@
         let userProgress = { interactions_done: 0, required: 3, is_unlocked: false };
         
         function showLoggedIn() {
-            document.getElementById('userInfo').innerHTML = '<img src="' + currentUser.avatar + '" class="w-8 h-8 rounded-full"><span class="font-medium">@' + currentUser.username + '</span>';
+            document.getElementById('userInfo').innerHTML = '<img src="' + currentUser.avatar + '" class="w-8 h-8 rounded-full">';
             document.getElementById('mainContent').classList.remove('hidden');
             document.getElementById('linksSubmitted').textContent = currentUser.links;
             document.getElementById('interactionsDone').textContent = currentUser.interactions;
@@ -161,7 +208,7 @@
             } catch (e) {
                 allTasks = [];
                 for (let i = 1; i <= 25; i++) {
-                    allTasks.push({id: i, username: 'user_' + i, avatar: 'https://picsum.photos/' + (100+i), link: 'https://x.com/user_' + i + '/status/' + (123456780+i), liked: false, retweeted: false, commented: false});
+                    allTasks.push({id: i, username: 'user_' + i, avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=' + i, link: '#', liked: false, retweeted: false, commented: false});
                 }
             }
             currentPage = 1;
@@ -173,10 +220,10 @@
             const start = (currentPage - 1) * TASKS_PER_PAGE;
             const tasks = allTasks.slice(start, start + TASKS_PER_PAGE);
             const list = document.getElementById('taskList');
-            document.getElementById('taskCount').textContent = allTasks.length + ' 个任务 (' + currentPage + '/' + Math.ceil(allTasks.length/TASKS_PER_PAGE) + ')';
+            document.getElementById('taskCount');
             list.innerHTML = tasks.map(task => {
                 const isDone = task.liked && task.retweeted && task.commented;
-                return '<div class="card p-3 flex items-center justify-between"><div class="flex items-center gap-3"><img src="' + task.avatar + '" class="w-8 h-8 rounded-full"><a href="' + task.link + '" target="_blank" class="text-sm text-slate-300 hover:text-sky-400">@' + task.username + '</a></div><a href="' + task.link + '" target="_blank" onclick="setTimeout(() => markAsDone(' + task.id + '), 1500)" class="px-4 py-1.5 rounded-lg text-sm ' + (isDone ? 'bg-slate-700 text-slate-400' : 'bg-sky-500/20 text-sky-400 border border-sky-500/30') + '">' + (isDone ? '已完成' : '去互动') + '</a></div>';
+                return '<div class="card rounded-xl p-3 flex items-center justify-between fade-in"><div class="flex items-center gap-3"><img src="' + task.avatar + '" class="w-8 h-8 rounded-full"><span class="text-sm text-white">@' + task.username + '</span></div><button onclick="markAsDone(' + task.id + ')" class="px-4 py-1.5 rounded-lg text-xs font-medium ' + (isDone ? 'bg-white/5 text-slate-500' : 'bg-indigo-500/20 text-indigo-400 border border-indigo-500/30') + '">' + (isDone ? '✓ 已完成' : '去互动') + '</button></div>';
             }).join('');
         }
         
@@ -186,16 +233,12 @@
             if (total <= 1) { p.innerHTML = ''; return; }
             let html = '';
             for (let i = 1; i <= total; i++) {
-                html += '<button onclick="goToPage(' + i + ')" class="w-8 h-8 rounded ' + (i === currentPage ? 'bg-sky-500/20 border border-sky-500 text-sky-400' : 'bg-slate-700 border border-slate-600 text-slate-400 hover:border-sky-500') + '">' + i + '</button>';
+                html += '<button onclick="goToPage(' + i + ')" class="w-8 h-8 rounded-lg text-xs ' + (i === currentPage ? 'bg-indigo-500 text-white' : 'bg-white/5 text-slate-400 hover:bg-white/10') + '">' + i + '</button>';
             }
             p.innerHTML = html;
         }
         
-        function goToPage(page) {
-            currentPage = page;
-            renderTasks();
-            renderPagination();
-        }
+        function goToPage(page) { currentPage = page; renderTasks(); renderPagination(); }
         
         async function loadLeaderboard() {
             try {
@@ -208,19 +251,15 @@
         function renderLeaderboard(users) {
             const medals = ['🥇', '🥈', '🥉'];
             document.getElementById('leaderboardList').innerHTML = users.map((u, i) => 
-                '<div class="card p-3 flex items-center"><span class="w-6 ' + (i < 3 ? 'text-yellow-400' : 'text-slate-400') + '">' + (i < 3 ? medals[i] : i+1) + '</span><img src="' + u.avatar + '" class="w-7 h-7 rounded-full mx-3"><span class="flex-1 text-sm text-white">@' + u.username + '</span><div class="text-xs text-slate-400">📤' + u.links + ' 💬' + u.interactions + '</div></div>'
+                '<div class="card rounded-lg p-3 flex items-center"><span class="w-6 ' + (i < 3 ? 'text-yellow-400' : 'text-slate-500') + '">' + (i < 3 ? medals[i] : i+1) + '</span><img src="' + u.avatar + '" class="w-6 h-6 rounded-full mx-3"><span class="flex-1 text-sm text-white">@' + u.username + '</span><span class="text-xs text-slate-500">' + u.interactions + ' 互动</span></div>'
             ).join('');
         }
         
         function markAsDone(taskId) {
             const task = allTasks.find(t => t.id === taskId);
             if (task) {
-                task.liked = true;
-                task.retweeted = true;
-                task.commented = true;
+                task.liked = task.retweeted = task.commented = true;
                 renderTasks();
-                
-                // 更新进度
                 userProgress.interactions_done++;
                 currentUser.interactions = (currentUser.interactions || 0) + 1;
                 document.getElementById('interactionsDone').textContent = currentUser.interactions;
@@ -229,18 +268,15 @@
                 document.getElementById('progressBar').style.width = percent + '%';
                 document.getElementById('progressText').textContent = userProgress.interactions_done + '/' + userProgress.required;
                 
-                // 检查是否解锁
                 if (userProgress.interactions_done >= userProgress.required) {
                     userProgress.is_unlocked = true;
                     document.getElementById('linkInput').disabled = false;
-                    document.getElementById('linkInput').classList.remove('opacity-50', 'cursor-not-allowed');
                     document.getElementById('linkInput').placeholder = '粘贴你的Twitter链接...';
                     document.getElementById('submitBtn').disabled = false;
-                    document.getElementById('submitBtn').classList.remove('bg-slate-700', 'text-slate-400', 'cursor-not-allowed');
-                    document.getElementById('submitBtn').classList.add('bg-sky-500', 'text-white', 'hover:bg-sky-400');
+                    document.getElementById('submitBtn').classList.remove('bg-white/5', 'text-slate-400', 'cursor-not-allowed');
+                    document.getElementById('submitBtn').classList.add('bg-indigo-500', 'text-white', 'btn-glow');
                     document.getElementById('unlockMessage').classList.remove('hidden');
-                    document.getElementById('progressHint').textContent = '已解锁！可以提交链接了';
-                    document.getElementById('progressHint').classList.add('text-sky-400');
+                    document.getElementById('progressHint').textContent = '✓ 已解锁提交功能';
                 }
             }
         }
@@ -248,31 +284,15 @@
         function submitLink() {
             const link = document.getElementById('linkInput').value;
             if (!link) { alert('请输入链接'); return; }
+            const already = allTasks.some(t => t.username === currentUser.username);
+            if (already) { alert('今日已提交'); return; }
             
-            // 检查是否已提交过
-            const alreadySubmitted = allTasks.some(t => t.username === currentUser.username);
-            if (alreadySubmitted) { alert('今日已提交过链接，每人每天仅限1条'); return; }
-            
-            // 添加到任务池
-            const newTask = {
-                id: allTasks.length + 1,
-                username: currentUser.username,
-                avatar: currentUser.avatar,
-                link: link,
-                liked: false,
-                retweeted: false,
-                commented: false
-            };
-            allTasks.unshift(newTask);
-            renderTasks();
-            renderPagination();
-            
-            // 更新统计数据
+            allTasks.unshift({id: allTasks.length + 1, username: currentUser.username, avatar: currentUser.avatar, link: link, liked: false, retweeted: false, commented: false});
             currentUser.links = (currentUser.links || 0) + 1;
             document.getElementById('linksSubmitted').textContent = currentUser.links;
-            
-            // 清空输入框
             document.getElementById('linkInput').value = '';
+            renderTasks();
+            renderPagination();
             alert('提交成功！');
         }
         
