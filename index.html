@@ -515,8 +515,12 @@
         }
         
         async function loadTasks() {
-            // 从 localStorage 加载已完成的任务
+            // 从 localStorage 加载已完成的任务和用户提交
             const doneTasks = JSON.parse(localStorage.getItem('done_tasks') || '[]');
+            const savedTasks = JSON.parse(localStorage.getItem('user_tasks') || '[]');
+            if (savedTasks.length > 0) {
+                allTasks = savedTasks;
+            }
             
             try {
                 const res = await fetch('/api/tasks');
@@ -665,7 +669,8 @@
             
             allTasks.unshift({id: allTasks.length + 1, username: currentUser.username, avatar: currentUser.avatar, link: link, liked: false, retweeted: false, commented: false});
             // 保存到 localStorage
-            localStorage.setItem('twitter_user', JSON.stringify(currentUser));
+            localStorage.setItem('user_tasks', JSON.stringify(allTasks));
+            document.getElementById('linksSubmitted').textContent = allTasks.length;
             document.getElementById('linkInput').value = '';
             renderTasks();
             renderPagination();
