@@ -475,7 +475,14 @@
         let userProgress = { interactions_done: 0, required: 3, is_unlocked: false };
         
         function showLoggedIn() {
-            document.getElementById('userInfo').innerHTML = '<div class="flex items-center gap-2"><img id="avatar-img" src="' + currentUser.avatar + '" class="w-8 h-8 rounded-full"><span id="username-text" class="text-white text-sm">@' + currentUser.username + '</span><button onclick="logout()" class="text-xs text-slate-500 hover:text-white">退出</button></div>';
+            console.log('showLoggedIn called, currentUser:', currentUser);
+            const userInfo = document.getElementById('userInfo');
+            if (userInfo) {
+                userInfo.innerHTML = '<div class="flex items-center gap-2"><img id="avatar-img" src="' + currentUser.avatar + '" class="w-8 h-8 rounded-full"><span id="username-text" class="text-white text-sm">@' + currentUser.username + '</span><button onclick="logout()" class="text-xs text-slate-500 hover:text-white">退出</button></div>';
+                console.log('User info updated');
+            } else {
+                console.log('userInfo element not found!');
+            }
             document.getElementById('mainContent').classList.remove('hidden');
             document.getElementById('linksSubmitted').textContent = currentUser.links;
             document.getElementById('interactionsDone').textContent = currentUser.interactions;
