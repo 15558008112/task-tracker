@@ -231,11 +231,8 @@
         }
         
         function login() {
-            // 简化：让用户输入用户名，然后获取真实头像
-            const username = prompt('请输入你的 Twitter 用户名（不带@）');
-            if (username) {
-                loginWithUsername(username);
-            }
+            // 使用 OAuth 1.0a 登录
+            window.location.href = '/auth/twitter';
         }
         
         async function loginWithUsername(username) {
