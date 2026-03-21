@@ -245,6 +245,10 @@
             const link = document.getElementById('linkInput').value;
             if (!link) { alert('请输入链接'); return; }
             
+            // 检查是否已提交过
+            const alreadySubmitted = allTasks.some(t => t.username === currentUser.username);
+            if (alreadySubmitted) { alert('今日已提交过链接，每人每天仅限1条'); return; }
+            
             // 添加到任务池
             const newTask = {
                 id: allTasks.length + 1,
