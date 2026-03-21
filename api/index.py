@@ -64,6 +64,8 @@ def get_status():
 
 @app.route('/api/login')
 def login():
+    redirect_param = request.args.get('redirect')
+    
     # Generate state for security
     state = secrets.token_urlsafe(32)
     session['oauth_state'] = state
@@ -79,6 +81,9 @@ def login():
         f"code_challenge=challenge&"
         f"code_challenge_method=plain"
     )
+    
+    if redirect_param == 'true':
+        return redirect(auth_url)
     
     return jsonify({'auth_url': auth_url})
 
