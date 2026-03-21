@@ -518,17 +518,20 @@
             // 从 localStorage 加载已完成的任务和用户提交
             const doneTasks = JSON.parse(localStorage.getItem('done_tasks') || '[]');
             const savedTasks = JSON.parse(localStorage.getItem('user_tasks') || '[]');
+            
+            // 如果有本地任务数据，直接使用
             if (savedTasks.length > 0) {
                 allTasks = savedTasks;
-            }
-            
-            try {
-                const res = await fetch('/api/tasks');
-                allTasks = await res.json();
-            } catch (e) {
-                allTasks = [];
-                for (let i = 1; i <= 50; i++) {
-                    allTasks.push({id: i, username: 'user_' + i, avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=' + i, link: '#', liked: false, retweeted: false, commented: false});
+            } else {
+                // 否则从 API 加载
+                try {
+                    const res = await fetch('/api/tasks');
+                    allTasks = await res.json();
+                } catch (e) {
+                    allTasks = [];
+                    for (let i = 1; i <= 50; i++) {
+                        allTasks.push({id: i, username: 'user_' + i, avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=' + i, link: '#', liked: false, retweeted: false, commented: false});
+                    }
                 }
             }
             
