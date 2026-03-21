@@ -477,6 +477,17 @@
         
         function showLoggedIn() {
             console.log('showLoggedIn called, currentUser:', currentUser);
+            
+            // 加载用户数据
+            const savedUser = localStorage.getItem('twitter_user');
+            if (savedUser) {
+                try {
+                    const userData = JSON.parse(savedUser);
+                    currentUser.links = userData.links || 0;
+                    currentUser.interactions = userData.interactions || 0;
+                } catch(e) {}
+            }
+            
             const userInfo = document.getElementById('userInfo');
             
             // 确保有头像
@@ -654,6 +665,8 @@
             allTasks.unshift({id: allTasks.length + 1, username: currentUser.username, avatar: currentUser.avatar, link: link, liked: false, retweeted: false, commented: false});
             currentUser.links = (currentUser.links || 0) + 1;
             document.getElementById('linksSubmitted').textContent = currentUser.links;
+            // 保存到 localStorage
+            localStorage.setItem('twitter_user', JSON.stringify(currentUser));
             document.getElementById('linkInput').value = '';
             renderTasks();
             renderPagination();
