@@ -181,29 +181,20 @@
         updateCountdown();
         
         async function init() {
-            // Auto login on page load
+            // Check login status
             try {
-                const res = await fetch('/api/login', { method: 'POST' });
+                const res = await fetch('/api/status');
                 const data = await res.json();
-                currentUser = data.user;
-            } catch (e) {
-                currentUser = {username: 'guest', avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=guest', links: 0, interactions: 0};
-            }
+                if (data.logged_in && data.user) {
+                    currentUser = data.user;
+                }
+            } catch (e) {}
             showLoggedIn();
         }
         
         async function login() {
-            // Call login API
-            try {
-                const res = await fetch('/api/login', { method: 'POST' });
-                const data = await res.json();
-                if (data.user) {
-                    currentUser = data.user;
-                    showLoggedIn();
-                }
-            } catch (e) {
-                console.error(e);
-            }
+            // Redirect to Twitter OAuth
+            window.location.href = '/api/login';
         }
         
         async function logout() {
