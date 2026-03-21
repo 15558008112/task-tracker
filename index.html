@@ -207,7 +207,7 @@
                 allTasks = await res.json();
             } catch (e) {
                 allTasks = [];
-                for (let i = 1; i <= 25; i++) {
+                for (let i = 1; i <= 50; i++) {
                     allTasks.push({id: i, username: 'user_' + i, avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=' + i, link: '#', liked: false, retweeted: false, commented: false});
                 }
             }
@@ -232,13 +232,27 @@
             const p = document.getElementById('pagination');
             if (total <= 1) { p.innerHTML = ''; return; }
             let html = '';
+            
+            // 上一页
+            html += '<button onclick="goToPage(' + (currentPage - 1) + ')" ' + (currentPage === 1 ? 'disabled' : '') + ' class="w-8 h-8 rounded-lg text-xs ' + (currentPage === 1 ? 'opacity-30 cursor-not-allowed' : 'bg-white/5 text-slate-400 hover:bg-white/10') + '">‹</button>';
+            
             for (let i = 1; i <= total; i++) {
                 html += '<button onclick="goToPage(' + i + ')" class="w-8 h-8 rounded-lg text-xs ' + (i === currentPage ? 'bg-indigo-500 text-white' : 'bg-white/5 text-slate-400 hover:bg-white/10') + '">' + i + '</button>';
             }
+            
+            // 下一页
+            html += '<button onclick="goToPage(' + (currentPage + 1) + ')" ' + (currentPage === total ? 'disabled' : '') + ' class="w-8 h-8 rounded-lg text-xs ' + (currentPage === total ? 'opacity-30 cursor-not-allowed' : 'bg-white/5 text-slate-400 hover:bg-white/10') + '">›</button>';
+            
             p.innerHTML = html;
         }
         
-        function goToPage(page) { currentPage = page; renderTasks(); renderPagination(); }
+        function goToPage(page) { 
+            const total = Math.ceil(allTasks.length / TASKS_PER_PAGE);
+            if (page < 1 || page > total) return;
+            currentPage = page; 
+            renderTasks(); 
+            renderPagination(); 
+        }
         
         async function loadLeaderboard() {
             try {
