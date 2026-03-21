@@ -22,6 +22,13 @@
         .avatar { width: 40px; height: 40px; border-radius: 50%; }
         .username { font-weight: 600; }
         
+        /* Login */
+        .login-btn {
+            padding: 10px 20px; background: #1da1f2; color: #fff; 
+            border: none; border-radius: 8px; font-weight: 600; cursor: pointer;
+            text-decoration: none; display: inline-block;
+        }
+        
         /* Stats */
         .stats {
             display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; margin: 20px 0;
@@ -54,14 +61,14 @@
             background: #16161a; padding: 15px; border-radius: 12px; margin-bottom: 10px;
             display: flex; align-items: center; justify-content: space-between;
         }
-        .task-user { display: flex; align-items: center; gap: 10px; }
-        .task-avatar { width: 36px; height: 36px; border-radius: 50%; }
+        .task-user { display: flex; align-items: center; gap: 10px; flex: 1; min-width: 0; }
+        .task-avatar { width: 36px; height: 36px; border-radius: 50%; flex-shrink: 0; }
         .task-link {
-            color: #00f0ff; text-decoration: none; font-size: 0.85em;
+            color: #00f0ff; text-decoration: none; font-size: 0.85em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
         }
-        .task-actions { display: flex; gap: 8px; }
+        .task-actions { display: flex; gap: 8px; flex-shrink: 0; }
         .action-btn {
-            padding: 8px 16px; border: none; border-radius: 6px; cursor: pointer; font-size: 0.85em;
+            padding: 8px 12px; border: none; border-radius: 6px; cursor: pointer; font-size: 0.8em; white-space: nowrap;
         }
         .action-btn.like { background: #1da1f2; color: #fff; }
         .action-btn.retweet { background: #00ff88; color: #000; }
@@ -93,128 +100,161 @@
         <!-- Header -->
         <div class="header">
             <div class="logo">24hclub</div>
-            <div class="user-info">
-                <img src="https://picsum.photos/100" class="avatar">
-                <span class="username">@crypto_king</span>
+            <div class="user-info" id="userInfo">
+                <a href="/auth/twitter" class="login-btn">Twitter 登录</a>
             </div>
         </div>
         
-        <!-- Stats -->
-        <div class="stats">
-            <div class="stat-card">
-                <div class="stat-num">12</div>
-                <div class="stat-label">今日提交</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-num">45</div>
-                <div class="stat-label">已完成互动</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-num">0</div>
-                <div class="stat-label">还需互动</div>
-            </div>
-        </div>
-        
-        <!-- Submit Section -->
-        <div class="submit-section">
-            <h3>提交你的链接</h3>
-            <input type="text" class="submit-input" placeholder="粘贴你的Twitter链接...">
-            <button class="submit-btn" onclick="alert('Demo模式 - 暂时无法提交')">提交</button>
-        </div>
-        
-        <!-- Task List -->
-        <div class="task-list">
-            <div class="task-header">
-                <h3>今日任务池</h3>
-                <span style="color: #888;">3 个任务</span>
-            </div>
-            
-            <div class="task-item">
-                <div class="task-user">
-                    <img src="https://picsum.photos/100" class="task-avatar">
-                    <a href="https://x.com/crypto_king/status/123456789" target="_blank" class="task-link">
-                        @crypto_king 的推文
-                    </a>
+        <!-- Logged in content -->
+        <div id="mainContent" style="display: none;">
+            <!-- Stats -->
+            <div class="stats">
+                <div class="stat-card">
+                    <div class="stat-num" id="linksSubmitted">0</div>
+                    <div class="stat-label">今日提交</div>
                 </div>
-                <div class="task-actions">
-                    <button class="action-btn done">👍</button>
-                    <button class="action-btn done">🔄</button>
-                    <button class="action-btn done">💬</button>
+                <div class="stat-card">
+                    <div class="stat-num" id="interactionsDone">0</div>
+                    <div class="stat-label">已完成互动</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-num" id="pendingNeeded">5</div>
+                    <div class="stat-label">还需互动</div>
                 </div>
             </div>
             
-            <div class="task-item">
-                <div class="task-user">
-                    <img src="https://picsum.photos/101" class="task-avatar">
-                    <a href="https://x.com/defi_girl/status/123456788" target="_blank" class="task-link">
-                        @defi_girl 的推文
-                    </a>
+            <!-- Submit Section -->
+            <div class="submit-section">
+                <h3>提交你的链接</h3>
+                <div id="submitForm">
+                    <input type="text" id="linkInput" class="submit-input" placeholder="粘贴你的Twitter链接...">
+                    <button class="submit-btn" id="submitBtn" onclick="submitLink()">提交</button>
                 </div>
-                <div class="task-actions">
-                    <button class="action-btn like" onclick="this.className='action-btn done';this.innerText='👍'">👍</button>
-                    <button class="action-btn done">🔄</button>
-                    <button class="action-btn comment" onclick="this.className='action-btn done';this.innerText='💬'">💬</button>
-                </div>
+                <p class="warning" id="warningMsg" style="display: none;">⚠️ 需要先完成 5 次互动才能提交链接</p>
             </div>
             
-            <div class="task-item">
-                <div class="task-user">
-                    <img src="https://picsum.photos/102" class="task-avatar">
-                    <a href="https://x.com/whale_watcher/status/123456787" target="_blank" class="task-link">
-                        @whale_watcher 的推文
-                    </a>
+            <!-- Task List -->
+            <div class="task-list">
+                <div class="task-header">
+                    <h3>今日任务池</h3>
+                    <span style="color: #888;" id="taskCount">0 个任务</span>
                 </div>
-                <div class="task-actions">
-                    <button class="action-btn done">👍</button>
-                    <button class="action-btn done">🔄</button>
-                    <button class="action-btn comment" onclick="this.className='action-btn done';this.innerText='💬'">💬</button>
-                </div>
+                <div id="taskList"></div>
             </div>
         </div>
         
         <!-- Leaderboard -->
         <div class="leaderboard">
             <h3>贡献排行榜</h3>
-            
-            <div class="rank-item">
-                <span class="rank-num">1</span>
-                <img src="https://picsum.photos/100" class="rank-avatar">
-                <span class="rank-name">@crypto_king</span>
-                <div class="rank-stats">提交: 12 | 互动: 45</div>
-            </div>
-            
-            <div class="rank-item">
-                <span class="rank-num">2</span>
-                <img src="https://picsum.photos/101" class="rank-avatar">
-                <span class="rank-name">@defi_girl</span>
-                <div class="rank-stats">提交: 8 | 互动: 32</div>
-            </div>
-            
-            <div class="rank-item">
-                <span class="rank-num">3</span>
-                <img src="https://picsum.photos/103" class="rank-avatar">
-                <span class="rank-name">@nft_collector</span>
-                <div class="rank-stats">提交: 5 | 互动: 28</div>
-            </div>
-            
-            <div class="rank-item" style="border: 1px solid #ff3366;">
-                <span class="rank-num">4</span>
-                <img src="https://picsum.photos/102" class="rank-avatar">
-                <span class="rank-name rank-low">@whale_watcher</span>
-                <div class="rank-stats" style="color: #ff3366;">提交: 15 | 互动: 12 ⚠️</div>
-            </div>
-            
-            <div class="rank-item" style="border: 1px solid #ff3366;">
-                <span class="rank-num">5</span>
-                <img src="https://picsum.photos/104" class="rank-avatar">
-                <span class="rank-name rank-low">@memecoin_lad</span>
-                <div class="rank-stats" style="color: #ff3366;">提交: 20 | 互动: 5 ⚠️</div>
-            </div>
+            <div id="leaderboardList"></div>
         </div>
         
         <div class="footer">
-            24hclub Task Tracker - Demo Mode
+            24hclub Task Tracker
         </div>
     </div>
+    
+    <script>
+        // Mock data
+        const currentUser = null;
+        const users = [
+            {id: 1, username: 'crypto_king', avatar: 'https://picsum.photos/100', links: 12, interactions: 45},
+            {id: 2, username: 'defi_girl', avatar: 'https://picsum.photos/101', links: 8, interactions: 32},
+            {id: 3, username: 'whale_watcher', avatar: 'https://picsum.photos/102', links: 15, interactions: 12},
+            {id: 4, username: 'nft_collector', avatar: 'https://picsum.photos/103', links: 5, interactions: 28},
+            {id: 5, username: 'memecoin_lad', avatar: 'https://picsum.photos/104', links: 20, interactions: 5},
+        ];
+        
+        const tasks = [
+            {id: 1, userId: 1, username: 'crypto_king', avatar: 'https://picsum.photos/100', link: 'https://x.com/crypto_king/status/123456789', liked: true, retweeted: false, commented: true},
+            {id: 2, userId: 2, username: 'defi_girl', avatar: 'https://picsum.photos/101', link: 'https://x.com/defi_girl/status/123456788', liked: false, retweeted: true, commented: false},
+            {id: 3, userId: 3, username: 'whale_watcher', avatar: 'https://picsum.photos/102', link: 'https://x.com/whale_watcher/status/123456787', liked: true, retweeted: true, commented: false},
+        ];
+        
+        // For demo - simulate logged in user
+        const demoUser = {id: 1, username: 'crypto_king', avatar: 'https://picsum.photos/100', links: 12, interactions: 45};
+        
+        function init() {
+            // Demo: auto show logged in state
+            showLoggedIn(demoUser);
+        }
+        
+        function showLoggedIn(user) {
+            document.getElementById('userInfo').innerHTML = `
+                <img src="${user.avatar}" class="avatar">
+                <span class="username">@${user.username}</span>
+            `;
+            document.getElementById('mainContent').style.display = 'block';
+            
+            document.getElementById('linksSubmitted').textContent = user.links;
+            document.getElementById('interactionsDone').textContent = user.interactions;
+            document.getElementById('pendingNeeded').textContent = Math.max(0, 5 - user.interactions);
+            
+            if (user.interactions >= 5) {
+                document.getElementById('submitForm').style.display = 'block';
+                document.getElementById('warningMsg').style.display = 'none';
+            } else {
+                document.getElementById('submitForm').style.display = 'none';
+                document.getElementById('warningMsg').style.display = 'block';
+            }
+            
+            renderTasks();
+            renderLeaderboard();
+        }
+        
+        function renderTasks() {
+            const list = document.getElementById('taskList');
+            document.getElementById('taskCount').textContent = tasks.length + ' 个任务';
+            
+            list.innerHTML = tasks.map(task => `
+                <div class="task-item">
+                    <div class="task-user">
+                        <img src="${task.avatar}" class="task-avatar">
+                        <a href="${task.link}" target="_blank" class="task-link">@${task.username} 的推文</a>
+                    </div>
+                    <div class="task-actions">
+                        <button class="action-btn ${task.liked ? 'done' : 'like'}" onclick="interact(${task.id}, 'like')">${task.liked ? '✓' : '👍'}</button>
+                        <button class="action-btn ${task.retweeted ? 'done' : 'retweet'}" onclick="interact(${task.id}, 'retweet')">${task.retweeted ? '✓' : '🔄'}</button>
+                        <button class="action-btn ${task.commented ? 'done' : 'comment'}" onclick="interact(${task.id}, 'comment')">${task.commented ? '✓' : '💬'}</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+        
+        function renderLeaderboard() {
+            const list = document.getElementById('leaderboardList');
+            list.innerHTML = users.map((u, i) => `
+                <div class="rank-item" style="${u.interactions < 5 ? 'border: 1px solid #ff3366;' : ''}">
+                    <span class="rank-num">${i + 1}</span>
+                    <img src="${u.avatar}" class="rank-avatar">
+                    <span class="rank-name ${u.interactions < 5 ? 'rank-low' : ''}">@${u.username}</span>
+                    <div class="rank-stats" style="${u.interactions < 5 ? 'color: #ff3366;' : ''}">
+                        提交: ${u.links} | 互动: ${u.interactions} ${u.interactions < 5 ? '⚠️' : ''}
+                    </div>
+                </div>
+            `).join('');
+        }
+        
+        function interact(taskId, action) {
+            const task = tasks.find(t => t.id === taskId);
+            if (task) {
+                if (action === 'like') task.liked = !task.liked;
+                if (action === 'retweet') task.retweeted = !task.retweeted;
+                if (action === 'comment') task.commented = !task.commented;
+                renderTasks();
+            }
+        }
+        
+        function submitLink() {
+            const link = document.getElementById('linkInput').value;
+            if (!link) {
+                alert('请输入链接');
+                return;
+            }
+            alert('Demo模式 - 提交功能暂时禁用');
+        }
+        
+        init();
+    </script>
 </body>
 </html>
