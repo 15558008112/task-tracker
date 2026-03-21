@@ -565,9 +565,12 @@
         }
         
         async function loadTasks() {
-            // 从 localStorage 加载已完成的任务和用户提交
-            const doneTasks = JSON.parse(localStorage.getItem('done_tasks') || '[]');
-            const savedTasks = JSON.parse(localStorage.getItem('user_tasks') || '[]');
+            // 按用户加载已完成的任务和用户提交
+            const userKey = currentUser.username;
+            const doneKey = 'done_tasks_' + userKey;
+            const tasksKey = 'user_tasks_' + userKey;
+            const doneTasks = JSON.parse(localStorage.getItem(doneKey) || '[]');
+            const savedTasks = JSON.parse(localStorage.getItem(tasksKey) || '[]');
             
             // 如果有本地任务数据，直接使用
             if (savedTasks.length > 0) {
@@ -736,11 +739,13 @@
                     audio.play();
                 } catch(e) {}
                 
-                // 保存到 localStorage
-                const doneTasks = JSON.parse(localStorage.getItem('done_tasks') || '[]');
+                // 保存到 localStorage（按用户）
+                const userKey = currentUser.username;
+                const doneKey = 'done_tasks_' + userKey;
+                const doneTasks = JSON.parse(localStorage.getItem(doneKey) || '[]');
                 if (!doneTasks.includes(taskId)) {
                     doneTasks.push(taskId);
-                    localStorage.setItem('done_tasks', JSON.stringify(doneTasks));
+                    localStorage.setItem(doneKey, JSON.stringify(doneTasks));
                 }
                 
                 // 更新积分 +150
@@ -785,8 +790,9 @@
             if (already) { alert('今日已提交'); return; }
             
             allTasks.unshift({id: allTasks.length + 1, username: currentUser.username, avatar: currentUser.avatar, link: link, liked: false, retweeted: false, commented: false});
-            // 保存到 localStorage
-            localStorage.setItem('user_tasks', JSON.stringify(allTasks));
+            // 保存到 localStorage（按用户）
+            const tasksKey = 'user_tasks_' + currentUser.username;
+            localStorage.setItem(tasksKey, JSON.stringify(allTasks));
             document.getElementById('linksSubmitted').textContent = allTasks.length;
             document.getElementById('linkInput').value = '';
             
