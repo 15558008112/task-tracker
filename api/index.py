@@ -190,6 +190,13 @@ def get_countdown():
 
 @app.route('/api/interact', methods=['POST'])
 def interact():
+    data = request.json
+    if data:
+        # 保存到 Supabase
+        supabase_request('POST', 'interactions', {
+            'username': data.get('username', 'guest'),
+            'task_id': data.get('task_id')
+        })
     return jsonify({'success': True})
 
 @app.route('/api/submit', methods=['POST'])

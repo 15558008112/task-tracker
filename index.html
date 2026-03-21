@@ -334,6 +334,12 @@
             }
             
             console.log("【MATRIX DIAGNOSTIC】Final currentUser:", currentUser);
+            
+            // 加载已完成的任务
+            const doneTasks = JSON.parse(localStorage.getItem('done_tasks') || '[]');
+            console.log('Loaded done tasks:', doneTasks);
+            userProgress.interactions_done = doneTasks.length;
+            
             showLoggedIn();
         }
         
@@ -571,6 +577,24 @@
                 const percent = Math.min(100, (userProgress.interactions_done / userProgress.required) * 100);
                 document.getElementById('progressBar').style.width = percent + '%';
                 document.getElementById('progressText').textContent = userProgress.interactions_done + '/' + userProgress.required;
+                
+                // 保存到 localStorage
+                const doneTasks = JSON.parse(localStorage.getItem('done_tasks') || '[]');
+                if (!doneTasks.includes(taskId)) {
+                    doneTasks.push(taskId);
+                    localStorage.setItem('done_tasks', JSON.stringify(doneTasks));
+                }
+                localStorage.setItem('currentUser', JSON.stringify(currentUser));
+                
+                // 保存到 Supabase
+                fetch('/api/interact', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({
+                        username: currentUser.username,
+                        task_id: taskId
+                    })
+                });
                 
                 if (userProgress.interactions_done >= userProgress.required) {
                     userProgress.is_unlocked = true;
