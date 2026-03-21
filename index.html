@@ -15,17 +15,43 @@
         
         // 🚀 触发 Twitter 登录
         async function login() {
-            const { data, error } = await supabase.auth.signInWithOAuth({
-                provider: 'twitter',
-                options: {
-                    redirectTo: 'https://task-tracker-kohl-one-14.vercel.app/'
+            try {
+                const { data, error } = await supabase.auth.signInWithOAuth({
+                    provider: 'twitter',
+                    options: {
+                        redirectTo: 'https://task-tracker-kohl-one-14.vercel.app/'
+                    }
+                });
+                
+                if (error) {
+                    console.error('Login error:', error);
+                    // 备用方案：让用户输入用户名
+                    const username = prompt('OAuth登录失败，请输入你的Twitter用户名（不带@）:');
+                    if (username) {
+                        loginWithUsername(username);
+                    }
                 }
-            });
-            
-            if (error) {
-                console.error('Login error:', error);
-                alert('登录失败: ' + error.message);
+            } catch (e) {
+                console.error('Exception:', e);
+                const username = prompt('请输入你的Twitter用户名（不带@）:');
+                if (username) {
+                    loginWithUsername(username);
+                }
             }
+        }
+        
+        // 备用：用户名登录
+        async function loginWithUsername(username) {
+            username = username.trim().replace('@', '');
+            currentUser = {
+                username: username,
+                name: username,
+                avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=' + username,
+                links: 0,
+                interactions: 0
+            };
+            localStorage.setItem('twitter_user', JSON.stringify(currentUser));
+            showLoggedIn();
         }
         
         // 🚀 监听 auth 状态变化
