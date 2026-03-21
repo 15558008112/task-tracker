@@ -180,7 +180,16 @@
         setInterval(updateCountdown, 1000);
         updateCountdown();
         
-        function init() {
+        async function init() {
+            // Check URL for login success
+            const params = new URLSearchParams(window.location.search);
+            if (params.get('logged_in') === 'true') {
+                // Fetch user info
+                try {
+                    const res = await fetch('/api/user');
+                    currentUser = await res.json();
+                } catch (e) {}
+            }
             showLoggedIn();
         }
         
