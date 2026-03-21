@@ -686,8 +686,8 @@
                 }
                 localStorage.setItem('currentUser', JSON.stringify(currentUser));
                 
-                // 更新积分 +350
-                currentUser.score = (currentUser.score || 0) + 350;
+                // 更新积分 +150
+                currentUser.score = (currentUser.score || 0) + 150;
                 updateLeaderboard();
                 
                 // 保存到 Supabase
@@ -725,8 +725,8 @@
             document.getElementById('linksSubmitted').textContent = allTasks.length;
             document.getElementById('linkInput').value = '';
             
-            // 更新积分 +200
-            currentUser.score = (currentUser.score || 0) + 200;
+            // 扣除积分 1000
+            currentUser.score = (currentUser.score || 0) - 1000;
             localStorage.setItem('twitter_user', JSON.stringify(currentUser));
             updateLeaderboard();
             
