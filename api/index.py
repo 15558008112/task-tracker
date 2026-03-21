@@ -73,8 +73,52 @@ def login():
 
 @app.route('/callback')
 def callback():
-    # Set cookie and redirect
+    code = request.args.get('code')
     from flask import make_response
+    
+    if code:
+        try:
+            # Exchange code for token
+            import urllib.request
+            import urllib.parse
+            import base64
+            
+            token_url = 'https://api.twitter.com/2/oauth2/token'
+            data = urllib.parse.urlencode({
+                'grant_type': 'authorization_code',
+                'code': code,
+                'redirect_uri': CALLBACK_URL,
+                'client_id': TWITTER_CLIENT_ID,
+                'code_verifier': 'challenge'
+            }).encode('utf-8')
+            
+            req = urllib.request.Request(token_url, data=data, method='POST')
+            req.add_header('Content-Type', 'application/x-www-form-urlencoded')
+            credentials = base64.b64encode(f"{TWITTER_CLIENT_ID}:{TWITTER_CLIENT_SECRET}".encode()).decode()
+            req.add_header('Authorization', f'Basic {credentials}')
+            
+            with urllib.request.urlopen(req, timeout=10) as resp:
+                token_data = json.loads(resp.read().decode('utf-8'))
+                access_token = token_data.get('access_token')
+                
+                if access_token:
+                    # Get user info
+                    user_req = urllib.request.Request('https://api.twitter.com/2/users/me?user.fields=username,name,profile_image_url',
+                        headers={'Authorization': f'Bearer {access_token}'})
+                    with urllib.request.urlopen(user_req, timeout=10) as user_resp:
+                        twitter_user = json.loads(user_resp.read().decode('utf-8'))
+                        
+                        if 'data' in twitter_user:
+                            t_user = twitter_user['data']
+                            username = t_user.get('username', 'user')
+                            avatar = t_user.get('profile_image_url', '').replace('_normal', '')
+                            
+                            response = make_response(redirect(f'/?logged_in=true&username={username}&avatar={avatar}'))
+                            response.set_cookie('twitter_auth', 'true', max_age=60*60*24*30)
+                            return response
+        except Exception as e:
+            print(f"OAuth error: {e}")
+    
     response = make_response(redirect('/'))
     response.set_cookie('twitter_auth', 'true', max_age=60*60*24*30)
     return response
