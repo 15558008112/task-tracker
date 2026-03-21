@@ -38,7 +38,7 @@
         <div class="bg-slate-800 rounded-lg p-4 mb-4 border-l-4 border-red-500">
             <div class="text-red-400 text-sm font-medium">距离今日任务重置还有</div>
             <div class="text-3xl font-mono font-bold text-red-400 mt-1" id="timer">00:00:00</div>
-            <div class="text-slate-400 text-xs mt-1">UTC 00:00 重置 (北京时间 08:00)</div>
+            <div class="text-slate-400 text-xs mt-1">每天 00:00 重置</div>
         </div>
         
         <!-- Header -->
@@ -118,11 +118,15 @@
         
         async function updateCountdown() {
             try {
-                const res = await fetch('/api/countdown');
-                const data = await res.json();
-                const h = Math.floor(data.seconds / 3600);
-                const m = Math.floor((data.seconds % 3600) / 60);
-                const s = data.seconds % 60;
+                // 本地时间午夜12点倒计时
+                const now = new Date();
+                const midnight = new Date(now);
+                midnight.setHours(24, 0, 0, 0);
+                const seconds = Math.floor((midnight - now) / 1000);
+                
+                const h = Math.floor(seconds / 3600);
+                const m = Math.floor((seconds % 3600) / 60);
+                const s = seconds % 60;
                 document.getElementById('timer').textContent = String(h).padStart(2,'0') + ':' + String(m).padStart(2,'0') + ':' + String(s).padStart(2,'0');
             } catch (e) {}
         }
