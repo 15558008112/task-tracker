@@ -271,6 +271,7 @@
     
     <script>
         let currentUser = { username: 'guest', avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=guest', links: 0, interactions: 0 };
+        let userProgress = { interactions_done: 0, required: 3, is_unlocked: false };
         let allTasks = [];
         let currentPage = 1;
         const TASKS_PER_PAGE = 20;
@@ -465,8 +466,6 @@
                 console.error(e);
             }
         }
-        
-        let userProgress = { interactions_done: 0, required: 3, is_unlocked: false };
         
         function showLoggedIn() {
             console.log('showLoggedIn called, currentUser:', currentUser);
