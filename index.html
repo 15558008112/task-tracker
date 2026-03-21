@@ -660,7 +660,8 @@
                     score: currentUser.score || 0
                 };
                 if (idx >= 0) {
-                    users[idx] = userData;
+                    // 如果已存在，取最高分
+                    users[idx].score = Math.max(users[idx].score, userData.score);
                 } else {
                     users.push(userData);
                 }
@@ -677,6 +678,7 @@
             // 更新当前用户积分
             const leaderboard = JSON.parse(localStorage.getItem('leaderboard') || '[]');
             const idx = leaderboard.findIndex(u => u.username === currentUser.username);
+            // 直接使用当前用户积分（会累加）
             const userData = {
                 username: currentUser.username,
                 avatar: currentUser.avatar,
