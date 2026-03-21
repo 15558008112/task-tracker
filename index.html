@@ -5,116 +5,233 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>24h 交互矩阵</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        surface: '#1a1f2e',
+                        surfaceElevated: '#242b3d',
+                        border: '#2d3548',
+                        textPrimary: '#e2e8f0',
+                        textSecondary: '#94a3b8',
+                        accent: '#38bdf8',
+                        accentMuted: '#0ea5e9',
+                        danger: '#f87171',
+                    }
+                }
+            }
+        }
+    </script>
     <style>
-        :root { --bg-dark: #0B0F19; --cyan: #22d3ee; }
-        body { background-color: var(--bg-dark); color: white; }
-        .glass { background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(10px); }
-        .text-gradient { background: linear-gradient(to right, #22d3ee, #3b82f6); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-        .font-mono { font-family: 'Courier New', monospace; }
+        body {
+            background: linear-gradient(165deg, #0f172a 0%, #1a1f2e 50%, #151c2c 100%);
+            color: #e2e8f0;
+            min-height: 100vh;
+        }
+        
+        .card {
+            background: #1a1f2e;
+            border: 1px solid #2d3548;
+            border-radius: 12px;
+            transition: all 0.2s ease;
+        }
+        
+        .card:hover {
+            border-color: #3b82f6;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+        }
+        
+        .card-elevated {
+            background: #242b3d;
+            box-shadow: inset 0 1px 0 rgba(255,255,255,0.03);
+        }
+        
+        .btn {
+            transition: all 0.15s ease;
+        }
+        
+        .btn:hover {
+            transform: translateY(-1px);
+            filter: brightness(1.1);
+        }
+        
+        .btn:active {
+            transform: translateY(0);
+        }
+        
+        .btn-accent {
+            background: #0ea5e9;
+            color: white;
+        }
+        
+        .btn-accent:hover {
+            background: #38bdf8;
+        }
+        
+        .input {
+            background: #0f172a;
+            border: 1px solid #2d3548;
+            color: #e2e8f0;
+            transition: border-color 0.15s ease;
+        }
+        
+        .input:focus {
+            border-color: #3b82f6;
+            outline: none;
+        }
+        
+        .input-locked {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
+        .font-mono { font-family: 'SF Mono', 'Fira Code', 'Courier New', monospace; }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .animate-fade-in {
+            animation: fadeIn 0.3s ease forwards;
+        }
         
         @keyframes unlockPulse {
-            0% { box-shadow: 0 0 0 0 rgba(34, 211, 238, 0.7); }
-            70% { box-shadow: 0 0 0 10px rgba(34, 211, 238, 0); }
-            100% { box-shadow: 0 0 0 0 rgba(34, 211, 238, 0); }
+            0% { box-shadow: 0 0 0 0 rgba(56, 189, 248, 0.4); }
+            70% { box-shadow: 0 0 0 8px rgba(56, 189, 248, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(56, 189, 248, 0); }
         }
-        .unlock-animation { animation: unlockPulse 0.6s ease-out; }
-        .input-locked { opacity: 0.5; cursor: not-allowed; border-color: #4b5563 !important; }
         
-        .restricted-badge { background: linear-gradient(135deg, #ef4444, #b91c1c); animation: pulse 2s infinite; }
-        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.8; } }
+        .unlock-animation { animation: unlockPulse 0.5s ease-out; }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+        
+        .pulse-animation { animation: pulse 2s ease-in-out infinite; }
+        
+        /* 分页按钮 */
+        .page-btn {
+            transition: all 0.15s ease;
+        }
+        
+        .page-btn:hover:not(:disabled) {
+            border-color: #3b82f6;
+            color: #38bdf8;
+        }
+        
+        .page-btn.active {
+            background: rgba(56, 189, 248, 0.15);
+            border-color: #3b82f6;
+            color: #38bdf8;
+        }
+        
+        /* 进度条 */
+        .progress-bar {
+            background: linear-gradient(90deg, #f59e0b, #ef4444);
+        }
     </style>
 </head>
-<body class="bg-[#0B0F19] text-white min-h-screen">
-    <div class="max-w-3xl mx-auto px-5 py-6">
+<body class="text-textPrimary min-h-screen">
+    <div class="max-w-3xl mx-auto px-4 py-6">
         <!-- 倒计时 -->
-        <div id="countdown" class="glass rounded-xl p-4 mb-4 border border-red-500/30 text-center">
-            <div class="text-red-500 text-sm font-semibold tracking-wider">⏰ 距离今日任务重置还有：</div>
-            <div id="timer" class="text-3xl font-mono font-bold text-red-500 mt-1">00:00:00</div>
-            <div class="text-gray-500 text-xs mt-1">UTC 00:00 重置 (北京时间 08:00)</div>
+        <div class="card p-4 mb-4 border-l-4 border-l-red-500">
+            <div class="text-red-400 text-sm font-medium">距离今日任务重置还有</div>
+            <div id="timer" class="text-3xl font-mono font-bold text-red-400 mt-1">00:00:00</div>
+            <div class="text-textSecondary text-xs mt-1">UTC 00:00 重置 (北京时间 08:00)</div>
         </div>
         
         <!-- Header -->
-        <header class="flex items-center justify-between py-5 border-b border-gray-800">
-            <h1 class="text-2xl font-bold bg-gradient-to-r from-cyan-400 to-green-400 bg-clip-text text-transparent">24h 交互矩阵</h1>
+        <header class="flex items-center justify-between py-4 border-b border-border">
+            <h1 class="text-xl font-semibold text-textPrimary">24h 交互矩阵</h1>
             <div id="userInfo">
-                <a href="/auth/twitter" class="px-4 py-2 bg-[#1DA1F2] text-white rounded-lg font-semibold">Twitter 登录</a>
+                <a href="/auth/twitter" class="btn px-4 py-2 bg-[#1DA1F2] text-white rounded-lg font-medium">Twitter 登录</a>
             </div>
         </header>
         
         <div id="mainContent" class="hidden">
             <!-- 互动进度条 -->
-            <div class="glass rounded-xl p-4 my-4 border border-gray-800" id="progressSection">
+            <div class="card p-4 my-4" id="progressSection">
                 <div class="flex justify-between items-center mb-2">
-                    <span class="text-sm text-gray-400">🔒 提交解锁进度</span>
-                    <span class="text-sm" id="progressText">0/3</span>
+                    <span class="text-sm text-textSecondary">提交解锁进度</span>
+                    <span class="text-sm text-textPrimary font-medium" id="progressText">0/3</span>
                 </div>
-                <div class="h-2 bg-gray-700 rounded-full overflow-hidden">
-                    <div id="progressBar" class="h-full bg-gradient-to-r from-yellow-400 to-orange-500 transition-all duration-500" style="width: 0%"></div>
+                <div class="h-1.5 bg-surface rounded-full overflow-hidden">
+                    <div id="progressBar" class="h-full progress-bar transition-all duration-300" style="width: 0%"></div>
                 </div>
-                <p class="text-xs text-gray-500 mt-2" id="progressHint">⚡ 完成 3 次互动任务即可解锁提交功能</p>
+                <p class="text-xs text-textSecondary mt-2" id="progressHint">完成 3 次互动任务即可解锁提交功能</p>
             </div>
             
             <!-- 限制用户警告 -->
-            <div id="restrictedWarning" class="hidden glass rounded-xl p-4 my-4 border border-red-500 restricted-badge">
-                <div class="flex items-center gap-2"><span class="text-xl">🚫</span><span class="font-bold">您已被限制提交</span></div>
-                <p class="text-sm mt-2">您的信用分过低，请先补齐欠下的互动后再提交</p>
+            <div id="restrictedWarning" class="hidden card p-4 my-4 border-red-500/50">
+                <div class="flex items-center gap-2 text-red-400">
+                    <i class="fas fa-ban"></i>
+                    <span class="font-medium">您已被限制提交</span>
+                </div>
+                <p class="text-sm text-textSecondary mt-2">您的信用分过低，请先补齐欠下的互动后再提交</p>
             </div>
             
             <!-- Stats Cards -->
-            <div class="grid grid-cols-3 gap-4 my-4">
-                <div class="glass rounded-2xl p-5 border border-gray-800">
-                    <div class="text-3xl font-bold text-cyan-400" id="linksSubmitted">0</div>
-                    <div class="text-gray-400 text-sm mt-1">📤 今日提交</div>
+            <div class="grid grid-cols-3 gap-3 my-4">
+                <div class="card p-4 text-center">
+                    <div class="text-2xl font-bold text-accent" id="linksSubmitted">0</div>
+                    <div class="text-xs text-textSecondary mt-1">今日提交</div>
                 </div>
-                <div class="glass rounded-2xl p-5 border border-gray-800">
-                    <div class="text-3xl font-bold text-gradient" id="interactionsDone">0</div>
-                    <div class="text-gray-400 text-sm mt-1">💬 已完成互动</div>
+                <div class="card p-4 text-center">
+                    <div class="text-2xl font-bold text-white" id="interactionsDone">0</div>
+                    <div class="text-xs text-textSecondary mt-1">已完成互动</div>
                 </div>
-                <div class="glass rounded-2xl p-5 border border-red-500/50" id="pendingCard">
-                    <div class="text-3xl font-bold text-red-500" id="pendingNeeded">3</div>
-                    <div class="text-gray-400 text-sm mt-1">⏳ 还需互动</div>
+                <div class="card p-4 text-center border-red-500/30" id="pendingCard">
+                    <div class="text-2xl font-bold text-red-400" id="pendingNeeded">3</div>
+                    <div class="text-xs text-textSecondary mt-1">还需互动</div>
                 </div>
             </div>
             
             <!-- Submit Section -->
-            <div class="glass rounded-2xl p-5 my-5">
-                <h3 class="text-lg font-semibold mb-4">📤 提交你的链接</h3>
+            <div class="card p-5 my-5">
+                <h3 class="text-base font-medium text-textPrimary mb-3">提交你的链接</h3>
                 <div class="flex gap-3" id="submitForm">
                     <input type="text" id="linkInput" 
-                        class="flex-1 px-4 py-3 bg-[#0B0F19] border border-gray-600 rounded-lg text-white placeholder-gray-500 focus:outline-none input-locked"
+                        class="input flex-1 px-4 py-3 rounded-lg text-sm input-locked"
                         placeholder="先完成互动任务来解锁提交..." disabled>
                     <button id="submitBtn" onclick="submitLink()" 
-                        class="px-6 py-3 bg-gray-600 text-gray-400 font-semibold rounded-lg cursor-not-allowed" disabled>提交</button>
+                        class="btn px-5 py-3 bg-surfaceElevated text-textSecondary rounded-lg font-medium cursor-not-allowed" disabled>提交</button>
                 </div>
-                <div id="unlockMessage" class="mt-3 text-center text-cyan-400 hidden">🔓 已解锁！可以提交你的链接了</div>
+                <div id="unlockMessage" class="mt-3 text-center text-accent text-sm hidden">
+                    <i class="fas fa-unlock mr-1"></i> 已解锁！可以提交你的链接了
+                </div>
             </div>
             
             <!-- Task List -->
             <div class="my-5">
-                <div class="flex justify-between items-center mb-4">
-                    <h3 class="text-lg font-semibold">📋 今日任务池 <span class="text-gray-500 text-sm">(随机打乱)</span></h3>
-                    <span class="text-gray-400" id="taskCount">0 个任务</span>
+                <div class="flex justify-between items-center mb-3">
+                    <h3 class="text-base font-medium text-textPrimary">今日任务池 <span class="text-textSecondary text-sm font-normal">(随机打乱)</span></h3>
+                    <span class="text-textSecondary text-sm" id="taskCount">0 个任务</span>
                 </div>
-                <div id="taskList" class="space-y-3"></div>
+                <div id="taskList" class="space-y-2"></div>
                 
                 <!-- 分页器 -->
-                <div id="pagination" class="flex justify-center items-center space-x-2 mt-6"></div>
+                <div id="pagination" class="flex justify-center items-center gap-1 mt-6"></div>
             </div>
         </div>
         
         <!-- Leaderboard -->
         <div class="mt-8">
-            <h3 class="text-lg font-semibold mb-4">🏆 今日贡献榜</h3>
+            <h3 class="text-base font-medium text-textPrimary mb-3">贡献排行榜</h3>
             <div id="leaderboardList" class="space-y-2"></div>
         </div>
         
-        <footer class="text-center py-6 text-gray-500 text-sm">24h 交互矩阵</footer>
+        <footer class="text-center py-6 text-textSecondary text-sm border-t border-border mt-8">
+            24h 交互矩阵
+        </footer>
     </div>
     
     <script>
         let currentUser = null;
         let allTasks = [];
-        let displayedTasks = [];
         let currentPage = 1;
         const TASKS_PER_PAGE = 20;
         
@@ -166,16 +283,15 @@
             if (progress.is_unlocked) {
                 document.getElementById('linkInput').disabled = false;
                 document.getElementById('linkInput').classList.remove('input-locked');
-                document.getElementById('linkInput').classList.add('border-cyan-500');
                 document.getElementById('linkInput').placeholder = '粘贴你的Twitter链接...';
                 
                 document.getElementById('submitBtn').disabled = false;
-                document.getElementById('submitBtn').classList.remove('bg-gray-600', 'text-gray-400', 'cursor-not-allowed');
-                document.getElementById('submitBtn').classList.add('bg-cyan-500', 'text-black', 'hover:bg-cyan-400');
+                document.getElementById('submitBtn').classList.remove('bg-surfaceElevated', 'text-textSecondary', 'cursor-not-allowed');
+                document.getElementById('submitBtn').classList.add('btn-accent');
                 
                 document.getElementById('unlockMessage').classList.remove('hidden');
-                document.getElementById('progressHint').textContent = '✅ 已解锁！可以提交你的链接了';
-                document.getElementById('progressHint').classList.add('text-cyan-400');
+                document.getElementById('progressHint').textContent = '已解锁！可以提交你的链接了';
+                document.getElementById('progressHint').classList.add('text-accent');
                 playUnlockSound();
             } else {
                 document.getElementById('linkInput').disabled = true;
@@ -200,7 +316,7 @@
                 oscillator.frequency.setValueAtTime(880, audioCtx.currentTime);
                 oscillator.frequency.setValueAtTime(1100, audioCtx.currentTime + 0.1);
                 oscillator.frequency.setValueAtTime(1320, audioCtx.currentTime + 0.2);
-                gainNode.gain.setValueAtTime(0.3, audioCtx.currentTime);
+                gainNode.gain.setValueAtTime(0.2, audioCtx.currentTime);
                 gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.4);
                 oscillator.start(audioCtx.currentTime);
                 oscillator.stop(audioCtx.currentTime + 0.4);
@@ -208,7 +324,7 @@
         }
         
         function showLoggedIn(user) {
-            document.getElementById('userInfo').innerHTML = `<img src="${user.avatar}" class="w-10 h-10 rounded-full"><span class="font-semibold">@${user.username}</span>`;
+            document.getElementById('userInfo').innerHTML = `<img src="${user.avatar}" class="w-8 h-8 rounded-full"><span class="font-medium">@${user.username}</span>`;
             document.getElementById('mainContent').classList.remove('hidden');
             document.getElementById('linksSubmitted').textContent = user.links;
             document.getElementById('interactionsDone').textContent = user.interactions;
@@ -222,15 +338,8 @@
                 const res = await fetch('/api/tasks');
                 allTasks = await res.json();
             } catch (e) {
-                allTasks = [
-                    {id: 1, userId: 1, username: 'crypto_king', avatar: 'https://picsum.photos/100', link: 'https://x.com/crypto_king/status/123456789', liked: false, retweeted: false, commented: false},
-                    {id: 2, userId: 2, username: 'defi_girl', avatar: 'https://picsum.photos/101', link: 'https://x.com/defi_girl/status/123456788', liked: false, retweeted: false, commented: false},
-                    {id: 3, userId: 3, username: 'whale_watcher', avatar: 'https://picsum.photos/102', link: 'https://x.com/whale_watcher/status/123456787', liked: false, retweeted: false, commented: false},
-                    {id: 4, userId: 4, username: 'nft_collector', avatar: 'https://picsum.photos/103', link: 'https://x.com/nft_collector/status/123456786', liked: false, retweeted: false, commented: false},
-                    {id: 5, userId: 5, username: 'memecoin_lad', avatar: 'https://picsum.photos/104', link: 'https://x.com/memecoin_lad/status/123456785', liked: false, retweeted: false, commented: false},
-                ];
-                // 生成更多测试数据
-                for (let i = 6; i <= 50; i++) {
+                allTasks = [];
+                for (let i = 1; i <= 50; i++) {
                     allTasks.push({
                         id: i, userId: i, username: `user_${i}`, avatar: `https://picsum.photos/${100+i%50}`, 
                         link: `https://x.com/user_${i}/status/${123456780+i}`, liked: false, retweeted: false, commented: false
@@ -252,22 +361,21 @@
         }
         
         function renderTasks() {
-            displayedTasks = getDisplayedTasks();
+            const displayedTasks = getDisplayedTasks();
             const list = document.getElementById('taskList');
             document.getElementById('taskCount').textContent = `${allTasks.length} 个任务 (${currentPage}/${getTotalPages()})`;
             
             list.innerHTML = displayedTasks.map(task => {
                 const isDone = task.liked && task.retweeted && task.commented;
                 return `
-                <div class="bg-[#131B2A] rounded-xl p-4 flex items-center justify-between border border-gray-800 hover:border-cyan-500/50 transition-colors">
+                <div class="card p-3 flex items-center justify-between animate-fade-in">
                     <div class="flex items-center gap-3 flex-1 min-w-0">
-                        <img src="${task.avatar}" class="w-9 h-9 rounded-full border border-gray-600">
-                        <a href="${task.link}" target="_blank" class="text-gray-300 truncate hover:text-cyan-400">@${task.username} 的推文</a>
+                        <img src="${task.avatar}" class="w-8 h-8 rounded-full">
+                        <a href="${task.link}" target="_blank" class="text-sm text-textSecondary hover:text-accent truncate transition-colors">@${task.username}</a>
                     </div>
                     <a href="${task.link}" target="_blank" 
-                        class="${isDone ? 'bg-gray-800/50 text-gray-500 border border-gray-700 px-6 py-2 rounded-lg font-mono text-sm cursor-not-allowed' : 'bg-cyan-500/10 text-cyan-400 border border-cyan-500/50 hover:bg-cyan-500/20 px-6 py-2 rounded-lg font-mono text-sm uppercase tracking-wider transition-all'}"
-                        onclick="${isDone ? '' : `markAsDone(event, ${task.id})`}">
-                        ${isDone ? 'DONE' : 'ACTION'}
+                        class="page-btn px-4 py-1.5 rounded-lg text-sm font-medium ${isDone ? 'bg-surfaceElevated text-textSecondary' : 'bg-accent/10 text-accent border border-accent/30'}">
+                        ${isDone ? '已完成' : '去互动'}
                     </a>
                 </div>`;
             }).join('');
@@ -277,47 +385,44 @@
             const totalPages = getTotalPages();
             const pagination = document.getElementById('pagination');
             
-            if (totalPages <= 1) {
-                pagination.innerHTML = '';
-                return;
-            }
+            if (totalPages <= 1) { pagination.innerHTML = ''; return; }
             
             let html = '';
             
             // 上一页
             html += `<button onclick="goToPage(${currentPage - 1})" ${currentPage === 1 ? 'disabled' : ''} 
-                class="w-8 h-8 flex items-center justify-center rounded bg-[#131B2A] border border-gray-800 text-gray-400 hover:border-cyan-500 hover:text-cyan-400 transition-colors cursor-pointer text-sm font-mono ${currentPage === 1 ? 'opacity-50 cursor-not-allowed hover:border-gray-800 hover:text-gray-400' : ''}">&lt;</button>`;
+                class="page-btn w-8 h-8 flex items-center justify-center rounded bg-surface border border-border text-textSecondary ${currentPage === 1 ? 'opacity-50 cursor-not-allowed' : ''}">
+                <i class="fas fa-chevron-left text-xs"></i></button>`;
             
             // 页码
-            const maxVisiblePages = 5;
-            let startPage = Math.max(1, currentPage - Math.floor(maxVisiblePages / 2));
-            let endPage = Math.min(totalPages, startPage + maxVisiblePages - 1);
+            const maxVisible = 5;
+            let start = Math.max(1, currentPage - Math.floor(maxVisible / 2));
+            let end = Math.min(totalPages, start + maxVisible - 1);
             
-            if (endPage - startPage < maxVisiblePages - 1) {
-                startPage = Math.max(1, endPage - maxVisiblePages + 1);
+            if (end - start < maxVisible - 1) start = Math.max(1, end - maxVisible + 1);
+            
+            if (start > 1) {
+                html += `<button onclick="goToPage(1)" class="page-btn w-8 h-8 flex items-center justify-center rounded bg-surface border border-border text-textSecondary">1</button>`;
+                if (start > 2) html += `<span class="text-textSecondary px-1">...</span>`;
             }
             
-            if (startPage > 1) {
-                html += `<button onclick="goToPage(1)" class="w-8 h-8 flex items-center justify-center rounded bg-[#131B2A] border border-gray-800 text-gray-400 hover:border-cyan-500 hover:text-cyan-400 transition-colors cursor-pointer text-sm font-mono">1</button>`;
-                if (startPage > 2) html += `<span class="text-gray-600">...</span>`;
-            }
-            
-            for (let i = startPage; i <= endPage; i++) {
+            for (let i = start; i <= end; i++) {
                 if (i === currentPage) {
-                    html += `<button class="w-8 h-8 flex items-center justify-center rounded bg-cyan-500/20 border border-cyan-500 text-cyan-400 font-bold shadow-[0_0_10px_rgba(34,211,238,0.3)] text-sm font-mono">${i}</button>`;
+                    html += `<button class="page-btn active w-8 h-8 flex items-center justify-center rounded text-sm font-medium">${i}</button>`;
                 } else {
-                    html += `<button onclick="goToPage(${i})" class="w-8 h-8 flex items-center justify-center rounded bg-[#131B2A] border border-gray-800 text-gray-400 hover:border-cyan-500 hover:text-cyan-400 transition-colors cursor-pointer text-sm font-mono">${i}</button>`;
+                    html += `<button onclick="goToPage(${i})" class="page-btn w-8 h-8 flex items-center justify-center rounded bg-surface border border-border text-textSecondary text-sm">${i}</button>`;
                 }
             }
             
-            if (endPage < totalPages) {
-                if (endPage < totalPages - 1) html += `<span class="text-gray-600">...</span>`;
-                html += `<button onclick="goToPage(${totalPages})" class="w-8 h-8 flex items-center justify-center rounded bg-[#131B2A] border border-gray-800 text-gray-400 hover:border-cyan-500 hover:text-cyan-400 transition-colors cursor-pointer text-sm font-mono">${totalPages}</button>`;
+            if (end < totalPages) {
+                if (end < totalPages - 1) html += `<span class="text-textSecondary px-1">...</span>`;
+                html += `<button onclick="goToPage(${totalPages})" class="page-btn w-8 h-8 flex items-center justify-center rounded bg-surface border border-border text-textSecondary text-sm">${totalPages}</button>`;
             }
             
             // 下一页
             html += `<button onclick="goToPage(${currentPage + 1})" ${currentPage === totalPages ? 'disabled' : ''} 
-                class="w-8 h-8 flex items-center justify-center rounded bg-[#131B2A] border border-gray-800 text-gray-400 hover:border-cyan-500 hover:text-cyan-400 transition-colors cursor-pointer text-sm font-mono ${currentPage === totalPages ? 'opacity-50 cursor-not-allowed hover:border-gray-800 hover:text-gray-400' : ''}">&gt;</button>`;
+                class="page-btn w-8 h-8 flex items-center justify-center rounded bg-surface border border-border text-textSecondary ${currentPage === totalPages ? 'opacity-50 cursor-not-allowed' : ''}">
+                <i class="fas fa-chevron-right text-xs"></i></button>`;
             
             pagination.innerHTML = html;
         }
@@ -342,13 +447,13 @@
             const list = document.getElementById('leaderboardList');
             const medals = ['🥇', '🥈', '🥉'];
             list.innerHTML = users.map((u, i) => `
-                <div class="bg-[#131B2A] rounded-lg p-3 flex items-center ${u.is_restricted ? 'border border-red-500' : (u.interactions < 5 ? 'border border-red-500/30' : '')}">
-                    <span class="w-8 text-lg font-bold ${i === 0 ? 'text-yellow-400' : (i === 1 ? 'text-gray-300' : (i === 2 ? 'text-orange-400' : 'text-gray-500'))}">${i < 3 ? medals[i] : (i + 1)}</span>
-                    <img src="${u.avatar}" class="w-8 h-8 rounded-full mr-3">
-                    <span class="flex-1 ${u.is_restricted ? 'text-red-500 font-bold' : (u.interactions < 5 ? 'text-red-500' : '')}">@${u.username}${u.is_restricted ? ' 🚫' : ''}</span>
-                    <div class="text-right text-sm ${u.is_restricted ? 'text-red-500' : 'text-gray-400'}">
+                <div class="card p-3 flex items-center ${u.is_restricted ? 'border-red-500/50' : ''}">
+                    <span class="w-6 text-base ${i === 0 ? 'text-yellow-400' : (i === 1 ? 'text-gray-300' : (i === 2 ? 'text-orange-400' : 'text-textSecondary')}">${i < 3 ? medals[i] : (i + 1)}</span>
+                    <img src="${u.avatar}" class="w-7 h-7 rounded-full mx-3">
+                    <span class="flex-1 text-sm ${u.is_restricted ? 'text-red-400' : 'text-textPrimary'}">@${u.username}${u.is_restricted ? ' 🚫' : ''}</span>
+                    <div class="text-right text-xs text-textSecondary">
                         <div>📤${u.links} 💬${u.interactions}</div>
-                        ${u.credit_score !== undefined ? `<div class="text-xs ${u.credit_score < 0 ? 'text-red-500' : 'text-gray-500'}">信用: ${u.credit_score}</div>` : ''}
+                        ${u.credit_score !== undefined ? `<div class="${u.credit_score < 0 ? 'text-red-400' : ''}">信用: ${u.credit_score}</div>` : ''}
                     </div>
                 </div>`).join('');
         }
