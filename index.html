@@ -15,11 +15,21 @@
         
         // 触发登录 - OAuth 2.0
         function login() {
+            // 清除旧数据
+            localStorage.removeItem('twitter_user');
+            localStorage.removeItem('done_tasks');
+            localStorage.removeItem('user_tasks');
+            
             window.location.href = '/auth/twitter';
         }
         
         // 备用：用户名登录
         async function loginWithUsername(username) {
+            // 清除旧数据
+            localStorage.removeItem('twitter_user');
+            localStorage.removeItem('done_tasks');
+            localStorage.removeItem('user_tasks');
+            
             username = username.trim().replace('@', '');
             
             let avatar = '';
@@ -369,7 +379,12 @@
         }
         
         function login() {
-            // 使用 OAuth 1.0a 登录
+            // 清除旧数据
+            localStorage.removeItem('twitter_user');
+            localStorage.removeItem('done_tasks');
+            localStorage.removeItem('user_tasks');
+            
+            // 使用 OAuth 登录
             window.location.href = '/auth/twitter';
         }
         
@@ -443,6 +458,11 @@
         }
         
         async function loginWithUsername() {
+            // 清除旧数据
+            localStorage.removeItem('twitter_user');
+            localStorage.removeItem('done_tasks');
+            localStorage.removeItem('user_tasks');
+            
             const username = document.getElementById('twitterInput').value.trim().replace('@', '');
             if (!username) {
                 alert('请输入Twitter用户名');
