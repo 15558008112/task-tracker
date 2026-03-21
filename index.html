@@ -172,7 +172,7 @@
             document.getElementById('taskCount').textContent = allTasks.length + ' 个任务 (' + currentPage + '/' + Math.ceil(allTasks.length/TASKS_PER_PAGE) + ')';
             list.innerHTML = tasks.map(task => {
                 const isDone = task.liked && task.retweeted && task.commented;
-                return '<div class="card p-3 flex items-center justify-between"><div class="flex items-center gap-3"><img src="' + task.avatar + '" class="w-8 h-8 rounded-full"><a href="' + task.link + '" target="_blank" class="text-sm text-slate-300 hover:text-sky-400">@' + task.username + '</a></div><a href="' + task.link + '" target="_blank" class="px-4 py-1.5 rounded-lg text-sm ' + (isDone ? 'bg-slate-700 text-slate-400' : 'bg-sky-500/20 text-sky-400 border border-sky-500/30') + '">' + (isDone ? '已完成' : '去互动') + '</a></div>';
+                return '<div class="card p-3 flex items-center justify-between"><div class="flex items-center gap-3"><img src="' + task.avatar + '" class="w-8 h-8 rounded-full"><a href="' + task.link + '" target="_blank" class="text-sm text-slate-300 hover:text-sky-400">@' + task.username + '</a></div><button onclick="markAsDone(' + task.id + ')" class="px-4 py-1.5 rounded-lg text-sm ' + (isDone ? 'bg-slate-700 text-slate-400' : 'bg-sky-500/20 text-sky-400 border border-sky-500/30') + '">' + (isDone ? '已完成' : '去互动') + '</button></div>';
             }).join('');
         }
         
@@ -206,6 +206,16 @@
             document.getElementById('leaderboardList').innerHTML = users.map((u, i) => 
                 '<div class="card p-3 flex items-center"><span class="w-6 ' + (i < 3 ? 'text-yellow-400' : 'text-slate-400') + '">' + (i < 3 ? medals[i] : i+1) + '</span><img src="' + u.avatar + '" class="w-7 h-7 rounded-full mx-3"><span class="flex-1 text-sm text-white">@' + u.username + '</span><div class="text-xs text-slate-400">📤' + u.links + ' 💬' + u.interactions + '</div></div>'
             ).join('');
+        }
+        
+        function markAsDone(taskId) {
+            const task = allTasks.find(t => t.id === taskId);
+            if (task) {
+                task.liked = true;
+                task.retweeted = true;
+                task.commented = true;
+                renderTasks();
+            }
         }
         
         init();
