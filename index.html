@@ -18,7 +18,7 @@
             const { data, error } = await supabase.auth.signInWithOAuth({
                 provider: 'twitter',
                 options: {
-                    redirectTo: window.location.origin + '/'
+                    redirectTo: 'https://task-tracker-kohl-one-14.vercel.app/'
                 }
             });
             
