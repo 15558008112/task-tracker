@@ -180,32 +180,18 @@
         setInterval(updateCountdown, 1000);
         updateCountdown();
         
-        async function init() {
-            // Check URL params first (from OAuth callback)
-            const params = new URLSearchParams(window.location.search);
-            const username = params.get('username');
-            const avatar = params.get('avatar');
-            
-            if (username) {
-                currentUser = {
-                    username: username,
-                    name: username,
-                    avatar: avatar || 'https://api.dicebear.com/7.x/avataaars/svg?seed=' + username,
-                    links: 0,
-                    interactions: 0
-                };
-                // Clear URL
-                window.history.replaceState({}, document.title, '/');
-            } else if (document.cookie.includes('twitter_auth=true')) {
-                // Check cookie
-                currentUser = {
-                    username: 'twitter_user',
-                    name: 'Twitter User',
-                    avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=twitter',
-                    links: 0,
-                    interactions: 0
-                };
+        function init() {
+            // Check localStorage first
+            const saved = localStorage.getItem('twitter_user');
+            if (saved) {
+                currentUser = JSON.parse(saved);
             }
+            showLoggedIn();
+        }
+        
+        function saveUser(user) {
+            localStorage.setItem('twitter_user', JSON.stringify(user));
+            currentUser = user;
             showLoggedIn();
         }
         
