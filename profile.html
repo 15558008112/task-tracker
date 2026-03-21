@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>个人中心 - 24H 交互助手</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * { font-family: 'Outfit', sans-serif; }
+        body { background: #0a0a0f; min-height: 100vh; }
+        .bg-grid {
+            background-image: 
+                linear-gradient(rgba(255,255,255,0.02) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255,255,255,0.02) 1px, transparent 1px);
+            background-size: 40px 40px;
+        }
+        .card {
+            background: linear-gradient(135deg, rgba(255,255,255,0.03) 0%, rgba(255,255,255,0.01) 100%);
+            border: 1px solid rgba(255,255,255,0.06);
+            backdrop-filter: blur(20px);
+        }
+        .card:hover { border-color: rgba(99, 102, 241, 0.3); }
+        .glow { box-shadow: 0 0 40px rgba(99, 102, 241, 0.15); }
+        .text-gradient {
+            background: linear-gradient(135deg, #818cf8 0%, #c084fc 50%, #f472b6 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+    </style>
+</head>
+<body class="bg-grid text-slate-300">
+    <div class="max-w-2xl mx-auto px-5 py-8">
+        <!-- Header -->
+        <header class="flex items-center justify-between mb-8">
+            <div class="flex items-center gap-3">
+                <a href="/" class="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-500 flex items-center justify-center">
+                    <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+                    </svg>
+                </a>
+                <h1 class="text-xl font-semibold text-white">个人中心</h1>
+            </div>
+            <a href="/" class="px-4 py-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg text-sm text-white transition-all">返回首页</a>
+        </header>
+        
+        <!-- Profile Card -->
+        <div class="card rounded-2xl p-6 mb-6 glow">
+            <div class="flex items-center gap-4 mb-6">
+                <img id="userAvatar" src="https://api.dicebear.com/7.x/avataaars/svg?seed=guest" class="w-20 h-20 rounded-full border-4 border-indigo-500">
+                <div>
+                    <h2 id="userName" class="text-2xl font-semibold text-white">@guest</h2>
+                    <p class="text-slate-400">欢迎使用 24H 交互助手</p>
+                </div>
+            </div>
+            
+            <!-- Stats -->
+            <div class="grid grid-cols-2 gap-4">
+                <div class="card rounded-xl p-4 text-center">
+                    <div class="text-3xl font-bold text-gradient" id="totalScore">0</div>
+                    <div class="text-sm text-slate-400 mt-1">总积分</div>
+                </div>
+                <div class="card rounded-xl p-4 text-center">
+                    <div class="text-3xl font-bold text-purple-400" id="rankNum">-</div>
+                    <div class="text-sm text-slate-400 mt-1">当前排名</div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- History -->
+        <div class="card rounded-2xl p-6 mb-6">
+            <h3 class="text-lg font-medium text-white mb-4">历史记录</h3>
+            <div id="historyList" class="space-y-3">
+                <p class="text-slate-500 text-center py-4">暂无记录</p>
+            </div>
+        </div>
+        
+        <!-- Actions -->
+        <div class="card rounded-2xl p-6">
+            <h3 class="text-lg font-medium text-white mb-4">操作</h3>
+            <div class="space-y-3">
+                <button onclick="clearData()" class="w-full px-4 py-3 bg-red-500/10 hover:bg-red-500/20 border border-red-500/30 rounded-xl text-red-400 text-sm transition-all">清除所有数据</button>
+            </div>
+        </div>
+        
+        <footer class="text-center py-8 text-slate-600 text-xs">
+            24H 交互助手
+        </footer>
+    </div>
+    
+    <script>
+        // 获取 URL 参数
+        const params = new URLSearchParams(window.location.search);
+        const username = params.get('username') || localStorage.getItem('current_username') || 'guest';
+        
+        // 加载用户数据
+        function loadProfile() {
+            document.getElementById('userName').textContent = '@' + username;
+            document.getElementById('userAvatar').src = 'https://api.dicebear.com/7.x/avataaars/svg?seed=' + username;
+            
+            // 获取积分
+            const leaderboard = JSON.parse(localStorage.getItem('leaderboard') || '[]');
+            const userData = leaderboard.find(u => u.username === username);
+            const totalScore = userData ? userData.score : 0;
+            
+            document.getElementById('totalScore').textContent = totalScore;
+            
+            // 排名
+            leaderboard.sort((a, b) => b.score - a.score);
+            const rank = leaderboard.findIndex(u => u.username === username) + 1;
+            document.getElementById('rankNum').textContent = rank > 0 ? '#' + rank : '-';
+            
+            // 历史记录
+            const historyList = document.getElementById('historyList');
+            const doneTasks = JSON.parse(localStorage.getItem('done_tasks') || '[]');
+            const userTasks = JSON.parse(localStorage.getItem('user_tasks') || '[]');
+            
+            if (doneTasks.length === 0 && userTasks.length === 0) {
+                historyList.innerHTML = '<p class="text-slate-500 text-center py-4">暂无记录</p>';
+            } else {
+                let html = '';
+                doneTasks.forEach((taskId, i) => {
+                    html += `<div class="card rounded-lg p-3 flex justify-between items-center">
+                        <span class="text-white">互动任务 #${taskId}</span>
+                        <span class="text-green-400 text-sm">+150 积分</span>
+                    </div>`;
+                });
+                userTasks.forEach((task, i) => {
+                    html += `<div class="card rounded-lg p-3 flex justify-between items-center">
+                        <span class="text-white">提交链接</span>
+                        <span class="text-red-400 text-sm">-1000 积分</span>
+                    </div>`;
+                });
+                historyList.innerHTML = html;
+            }
+        }
+        
+        function clearData() {
+            if (confirm('确定要清除所有数据吗？此操作不可恢复！')) {
+                localStorage.clear();
+                alert('数据已清除');
+                window.location.href = '/';
+            }
+        }
+        
+        loadProfile();
+    </script>
+</body>
+</html>

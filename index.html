@@ -519,12 +519,8 @@
         }
         
         function showProfile() {
-            // 获取用户积分
-            const leaderboard = JSON.parse(localStorage.getItem('leaderboard') || '[]');
-            const userData = leaderboard.find(u => u.username === currentUser.username);
-            const totalScore = userData ? userData.score : 0;
-            
-            alert('个人中心\n\n用户名: @' + currentUser.username + '\n总积分: ' + totalScore + ' 分');
+            // 跳转到个人中心页面
+            window.location.href = '/profile.html?username=' + currentUser.username;
         }
         
         function showLoggedIn() {
