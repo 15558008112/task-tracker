@@ -220,10 +220,13 @@
         
         async function logout() {
             try {
-                await fetch('/api/logout');
+                await fetch('/api/logout', { method: 'POST' });
                 currentUser = null;
-                location.reload();
-            } catch (e) {}
+                document.getElementById('userInfo').innerHTML = '<button onclick="login()" class="px-4 py-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg text-sm font-medium text-white transition-all">Twitter 登录</button>';
+                document.getElementById('mainContent').classList.add('hidden');
+            } catch (e) {
+                console.error(e);
+            }
         }
         
         let userProgress = { interactions_done: 0, required: 3, is_unlocked: false };

@@ -81,7 +81,7 @@ def login():
     
     return jsonify({'auth_url': auth_url})
 
-@app.route('/api/logout')
+@app.route('/api/logout', methods=['POST'])
 def logout():
     """Logout user"""
     global current_user
