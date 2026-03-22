@@ -140,12 +140,19 @@
 
         // 🚨 3. 真正的推特登录引擎
         async function login() {
-            console.log("🚀 调起推特登录模块...");
-            const { error } = await supabase.auth.signInWithOAuth({
-                provider: 'twitter',
-                options: { redirectTo: window.location.origin }
-            });
-            if (error) alert("网络拦截: " + error.message);
+            try {
+                console.log("🚀 调起推特登录模块...");
+                alert("开始登录...");
+                const { data, error } = await supabase.auth.signInWithOAuth({
+                    provider: 'twitter',
+                    options: { redirectTo: window.location.origin }
+                });
+                if (error) {
+                    alert("登录失败: " + error.message);
+                }
+            } catch(e) {
+                alert("登录异常: " + e.message);
+            }
         }
 
         // 🚨 4. 安全断开引擎
