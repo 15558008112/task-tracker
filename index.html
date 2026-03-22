@@ -388,10 +388,7 @@
         }
         
         function login() {
-            const username = prompt('请输入 Twitter 用户名（不带@）');
-            if (username && username.trim()) {
-                loginWithUsername(username.trim());
-            }
+            window.location.href = '/auth/twitter';
         }
         
         async function loginWithUsername(username) {

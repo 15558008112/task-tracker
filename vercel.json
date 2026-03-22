@@ -27,7 +27,7 @@
       "dest": "/profile.html"
     },
     {
-      "src": "/(.*)",
+      "src": "/",
       "dest": "/index.html"
     }
   ]
