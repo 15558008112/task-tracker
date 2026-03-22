@@ -19,7 +19,7 @@
       "dest": "/api/index.py"
     },
     {
-      "src": "/callback",
+      "src": "/callback(.*)",
       "dest": "/api/index.py"
     },
     {
@@ -27,7 +27,7 @@
       "dest": "/profile.html"
     },
     {
-      "src": "/",
+      "src": "/(.*)",
       "dest": "/index.html"
     }
   ]
