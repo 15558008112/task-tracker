@@ -370,8 +370,10 @@
             
             console.log("【MATRIX DIAGNOSTIC】Final currentUser:", currentUser);
             
-            // 加载已完成的任务
-            const doneTasks = JSON.parse(localStorage.getItem('done_tasks') || '[]');
+            // 加载用户数据（按用户）
+            const userKey = currentUser.username;
+            const doneKey = 'done_tasks_' + userKey;
+            const doneTasks = JSON.parse(localStorage.getItem(doneKey) || '[]');
             console.log('Loaded done tasks:', doneTasks);
             userProgress.interactions_done = doneTasks.length;
             
@@ -386,10 +388,8 @@
         }
         
         function login() {
-            // 清除旧数据
+            // 清除旧的全局数据
             localStorage.removeItem('twitter_user');
-            localStorage.removeItem('done_tasks');
-            localStorage.removeItem('user_tasks');
             
             // 使用 OAuth 登录
             window.location.href = '/auth/twitter';
