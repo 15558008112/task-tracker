@@ -140,14 +140,20 @@ def callback():
 
 @app.route('/api/user', methods=['POST'])
 def create_user():
-    data = request.json
-    if data:
-        supabase_request('POST', 'users', {
-            'username': data.get('username'),
-            'name': data.get('name'),
-            'avatar_url': data.get('avatar')
-        })
-    return jsonify({'success': True})
+    try:
+        data = request.json
+        print("Creating user:", data)
+        if data:
+            result = supabase_request('POST', 'users', {
+                'username': data.get('username'),
+                'name': data.get('name'),
+                'avatar_url': data.get('avatar')
+            })
+            print("Supabase result:", result)
+        return jsonify({'success': True})
+    except Exception as e:
+        print("Error:", e)
+        return jsonify({'error': str(e)}), 500
 
 @app.route('/api/user')
 def get_user():
