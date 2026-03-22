@@ -346,7 +346,8 @@
                     name: twitterName || twitterUser,
                     avatar: avatarUrl,
                     links: 0,
-                    interactions: 0
+                    interactions: 0,
+                    score: 0
                 };
                 
                 console.log("【MATRIX DIAGNOSTIC】Setting user from Twitter:", currentUser);
@@ -522,15 +523,15 @@
         function showLoggedIn() {
             console.log('showLoggedIn called, currentUser:', currentUser);
             
-            // 加载用户数据
+            // 确保 currentUser 有数据
             const savedUser = localStorage.getItem('twitter_user');
-            if (savedUser) {
+            if (savedUser && currentUser.username === 'guest') {
                 try {
-                    const userData = JSON.parse(savedUser);
-                    currentUser.links = userData.links || 0;
-                    currentUser.interactions = userData.interactions || 0;
-                    currentUser.score = userData.score || 0;
-                } catch(e) {}
+                    currentUser = JSON.parse(savedUser);
+                    console.log('Loaded user from localStorage:', currentUser);
+                } catch(e) {
+                    console.log('Parse error:', e);
+                }
             }
             
             const userInfo = document.getElementById('userInfo');
@@ -538,6 +539,7 @@
             // 确保有头像
             const avatar = currentUser.avatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${currentUser.username}`;
             const name = currentUser.name || currentUser.username;
+            console.log('Rendering avatar:', avatar, 'name:', name);
             
             if (userInfo) {
                 userInfo.innerHTML = `
