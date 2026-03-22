@@ -13,14 +13,27 @@
         
         const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
         
-        // 触发登录 - OAuth 2.0
-        function login() {
-            // 清除旧数据
+        // 🚀 真正的 Supabase OAuth 2.0 登录
+        async function login() {
+            console.log("启动 Supabase 推特授权...");
+            
+            // 清除旧残留
             localStorage.removeItem('twitter_user');
             localStorage.removeItem('done_tasks');
             localStorage.removeItem('user_tasks');
             
-            window.location.href = '/auth/twitter';
+            // 呼叫 Supabase 官方接口去对接推特
+            const { data, error } = await supabase.auth.signInWithOAuth({
+                provider: 'twitter',
+                options: {
+                    // 🚨 强制要求推特认证完后，乖乖跳回你的主页，绝不乱跑！
+                    redirectTo: window.location.origin
+                }
+            });
+            
+            if (error) {
+                alert("登录拦截: " + error.message);
+            }
         }
         
         // 备用：用户名登录
@@ -386,35 +399,6 @@
             }
             
             showLoggedIn();
-        }
-        
-        function login() {
-            const username = prompt('请输入 Twitter 用户名（不带@）');
-            if (username && username.trim()) {
-                const u = username.trim();
-                currentUser = {
-                    username: u,
-                    name: u,
-                    avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=' + u,
-                    links: 0,
-                    interactions: 0,
-                    score: 0
-                };
-                localStorage.setItem('twitter_user', JSON.stringify(currentUser));
-                
-                // 保存到 Supabase
-                fetch('/api/user', {
-                    method: 'POST',
-                    headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify({
-                        username: u,
-                        name: u,
-                        avatar: currentUser.avatar
-                    })
-                }).then(() => {
-                    window.location.href = '/';
-                });
-            }
         }
         
         async function loginWithUsername(username) {
