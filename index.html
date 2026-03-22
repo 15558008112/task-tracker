@@ -17,22 +17,30 @@
         async function login() {
             console.log("启动 Supabase 推特授权...");
             
-            // 清除旧残留
-            localStorage.removeItem('twitter_user');
-            localStorage.removeItem('done_tasks');
-            localStorage.removeItem('user_tasks');
-            
-            // 呼叫 Supabase 官方接口去对接推特
-            const { data, error } = await supabase.auth.signInWithOAuth({
-                provider: 'twitter',
-                options: {
-                    // 🚨 强制要求推特认证完后，乖乖跳回你的主页，绝不乱跑！
-                    redirectTo: window.location.origin
+            try {
+                // 清除旧残留
+                localStorage.removeItem('twitter_user');
+                localStorage.removeItem('done_tasks');
+                localStorage.removeItem('user_tasks');
+                
+                // 呼叫 Supabase 官方接口去对接推特
+                const { data, error } = await supabase.auth.signInWithOAuth({
+                    provider: 'twitter',
+                    options: {
+                        redirectTo: window.location.origin
+                    }
+                });
+                
+                if (error) {
+                    console.log("OAuth error:", error);
+                    // 备用：让用户输入用户名
+                    const username = prompt('Supabase登录失败，请输入Twitter用户名:');
+                    if (username) loginWithUsername(username);
                 }
-            });
-            
-            if (error) {
-                alert("登录拦截: " + error.message);
+            } catch (e) {
+                console.log("Login error:", e);
+                const username = prompt('登录出错，请输入Twitter用户名:');
+                if (username) loginWithUsername(username);
             }
         }
         
