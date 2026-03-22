@@ -121,7 +121,7 @@
         </div>
         
         <footer class="text-center py-8 text-slate-600 text-xs">
-            24h 交互矩阵
+            24H 交互助手
         </footer>
     </div>
     
@@ -239,7 +239,7 @@
                 } catch (e) {
                     allTasks = [];
                     for (let i = 1; i <= 50; i++) {
-                        allTasks.push({id: i, username: 'user_' + i, avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=' + i, link: '#', liked: false, retweeted: false, commented: false});
+                        allTasks.push({id: i, username: 'web3_hunter_' + i, avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=' + i, link: '#', liked: false, retweeted: false, commented: false});
                     }
                 }
             }
@@ -278,7 +278,7 @@
             
             list.innerHTML = tasks.map(task => {
                 const isDone = task.liked && task.retweeted && task.commented;
-                return '<div class="card rounded-xl p-3 flex items-center justify-between fade-in"><div class="flex items-center gap-3"><img src="' + task.avatar + '" class="w-8 h-8 rounded-full"><a href="' + task.link + '" target="_blank" class="text-sm text-white hover:text-indigo-400">@' + task.username + '</a></div><a href="' + task.link + '" target="_blank" onclick="setTimeout(() => markAsDone(' + task.id + '), 1500)" class="px-4 py-1.5 rounded-lg text-xs font-medium ' + (isDone ? 'bg-white/5 text-slate-500' : 'bg-indigo-500/20 text-indigo-400 border border-indigo-500/30') + '">' + (isDone ? '✓ 已完成' : '去互动') + '</a></div>';
+                return '<div class="card rounded-xl p-3 flex items-center justify-between fade-in"><div class="flex items-center gap-3"><img src="' + task.avatar + '" class="w-8 h-8 rounded-full border border-white/10"><a href="' + task.link + '" target="_blank" class="text-sm text-white hover:text-indigo-400">@' + task.username + '</a></div><a href="' + task.link + '" target="_blank" onclick="setTimeout(() => markAsDone(' + task.id + '), 1500)" class="px-4 py-1.5 rounded-lg text-xs font-medium ' + (isDone ? 'bg-white/5 text-slate-500' : 'bg-[#1DA1F2]/20 text-[#1DA1F2] border border-[#1DA1F2]/30 hover:bg-[#1DA1F2]/30') + '">' + (isDone ? '✓ 已完成' : '去互动') + '</a></div>';
             }).join('');
         }
 
@@ -321,7 +321,7 @@
         function renderLeaderboard(users) {
             const medals = ['🥇', '🥈', '🥉'];
             document.getElementById('leaderboardList').innerHTML = users.map((u, i) => 
-                '<div class="card rounded-lg p-3 flex items-center"><span class="w-6 ' + (i < 3 ? 'text-yellow-400' : 'text-slate-500') + '">' + (i < 3 ? medals[i] : i+1) + '</span><img src="' + (u.avatar || u.avatar_url) + '" class="w-6 h-6 rounded-full mx-3"><span class="flex-1 text-sm text-white">@' + u.username + '</span><span class="text-xs text-purple-400 font-bold">' + (u.score || 0) + ' 分</span></div>'
+                '<div class="card rounded-lg p-3 flex items-center"><span class="w-6 ' + (i < 3 ? 'text-yellow-400' : 'text-slate-500') + '">' + (i < 3 ? medals[i] : i+1) + '</span><img src="' + (u.avatar || '') + '" class="w-6 h-6 rounded-full mx-3 border border-white/10"><span class="flex-1 text-sm text-white">@' + u.username + '</span><span class="text-xs text-purple-400 font-bold">' + (u.score || 0) + ' 分</span></div>'
             ).join('');
         }
 
