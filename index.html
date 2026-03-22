@@ -389,7 +389,32 @@
         }
         
         function login() {
-            window.location.href = '/auth/twitter';
+            const username = prompt('请输入 Twitter 用户名（不带@）');
+            if (username && username.trim()) {
+                const u = username.trim();
+                currentUser = {
+                    username: u,
+                    name: u,
+                    avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=' + u,
+                    links: 0,
+                    interactions: 0,
+                    score: 0
+                };
+                localStorage.setItem('twitter_user', JSON.stringify(currentUser));
+                
+                // 保存到 Supabase
+                fetch('/api/user', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({
+                        username: u,
+                        name: u,
+                        avatar: currentUser.avatar
+                    })
+                }).then(() => {
+                    window.location.href = '/';
+                });
+            }
         }
         
         async function loginWithUsername(username) {

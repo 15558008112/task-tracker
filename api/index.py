@@ -138,6 +138,17 @@ def callback():
     
     return redirect('/?error=unknown')
 
+@app.route('/api/user', methods=['POST'])
+def create_user():
+    data = request.json
+    if data:
+        supabase_request('POST', 'users', {
+            'username': data.get('username'),
+            'name': data.get('name'),
+            'avatar_url': data.get('avatar')
+        })
+    return jsonify({'success': True})
+
 @app.route('/api/user')
 def get_user():
     username = request.args.get('username')
