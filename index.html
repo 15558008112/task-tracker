@@ -314,24 +314,77 @@
         let currentPage = 1;
         const TASKS_PER_PAGE = 20;
         
+        // 🚀 真正的推特登录引擎
+        async function login() {
+            console.log("🚀 调起推特登录模块...");
+            const { error } = await supabase.auth.signInWithOAuth({
+                provider: 'twitter',
+                options: { redirectTo: window.location.origin }
+            });
+            if (error) alert("网络拦截: " + error.message);
+        }
+
+        // 🚀 安全断开引擎
+        async function logout() {
+            await supabase.auth.signOut();
+            window.location.reload();
+        }
+
+        // 🚀 身份验资
+        async function checkAuth() {
+            const { data: { session } } = await supabase.auth.getSession();
+            
+            if (session) {
+                const meta = session.user.user_metadata;
+                const avatar = (meta.avatar_url || '').replace('_normal', '');
+                const username = meta.preferred_username || meta.name || 'Hacker';
+                
+                const savedUser = JSON.parse(localStorage.getItem('user_data_' + username) || '{}');
+                currentUser = {
+                    username: username,
+                    avatar: avatar,
+                    links: savedUser.links || 0,
+                    interactions: savedUser.interactions || 0,
+                    score: savedUser.score || 0
+                };
+
+                document.getElementById('userInfo').innerHTML = `
+                    <div class="flex items-center gap-3 fade-in">
+                        <img src="${avatar}" class="w-10 h-10 rounded-full border-2 border-[#1DA1F2] glow">
+                        <div class="flex flex-col">
+                            <span class="text-white font-medium">@${username}</span>
+                            <span class="text-xs text-[#1DA1F2]">已连接矩阵</span>
+                        </div>
+                        <button onclick="logout()" class="ml-3 px-3 py-1.5 bg-red-500/10 text-red-400 hover:bg-red-500/20 rounded-lg text-xs transition-all">断开连接</button>
+                    </div>`;
+                
+                document.getElementById('mainContent').classList.remove('hidden');
+                loadTasks();
+                loadLeaderboard();
+            } else {
+                document.getElementById('mainContent').classList.add('hidden');
+                loadLeaderboard(); 
+            }
+        }
+
+        checkAuth();
+
         function updateCountdown() {
             const now = new Date();
             const midnight = new Date(now);
             midnight.setHours(24, 0, 0, 0);
             const seconds = Math.floor((midnight - now) / 1000);
             
-            // 检查是否到了新的一天（重置任务）
             const lastDate = localStorage.getItem('last_reset_date');
             const today = now.toDateString();
             if (lastDate !== today && seconds < 3600) {
-                // 新的一天到了，重置任务数据
                 localStorage.setItem('done_tasks', '[]');
                 localStorage.setItem('user_tasks', '[]');
                 localStorage.setItem('last_reset_date', today);
-                // 重置当前用户的互动进度
-                userProgress.interactions_done = 0;
-                currentUser.interactions = 0;
-                // 刷新页面
+                if(currentUser) {
+                    userProgress.interactions_done = 0;
+                    currentUser.interactions = 0;
+                }
                 location.reload();
                 return;
             }
@@ -339,9 +392,11 @@
             const h = Math.floor(seconds / 3600);
             const m = Math.floor((seconds % 3600) / 60);
             const s = seconds % 60;
-            document.getElementById('timer').textContent = String(h).padStart(2,'0') + ':' + String(m).padStart(2,'0') + ':' + String(s).padStart(2,'0');
+            const timerEl = document.getElementById('timer');
+            if(timerEl) timerEl.textContent = String(h).padStart(2,'0') + ':' + String(m).padStart(2,'0') + ':' + String(s).padStart(2,'0');
         }
         setInterval(updateCountdown, 1000);
+        updateCountdown();
         updateCountdown();
         
         function init() {
